@@ -550,11 +550,8 @@ def main():
             else:
                 stats["no_vat_no_match"] += 1
                 if candidates:
-                    cand_str = "; ".join(
-                        f"{c[0]} (SIREN {c[1]}, {c[2]} - {ANNUAIRE_BASE}{c[1]})"
-                        for c in candidates if c[0]
-                    )
-                    no_vat_candidates_list.append(f"{nom} -> candidats trouves : {cand_str}")
+                    kept = [c for c in candidates if c[0]]
+                    no_vat_candidates_list.append((nom, kept))
                 else:
                     unchanged_list.append(nom)
                 rows_a_traiter.append(row)
@@ -696,8 +693,10 @@ def main():
             f.write("Lignes sans TVA - candidats trouves par recherche de nom mais AMBIGUS\n")
             f.write("(plusieurs entreprises actives correspondent, ou aucune correspondance\n")
             f.write("exacte de nom : a verifier et completer a la main pour eviter une erreur) :\n")
-            for x in no_vat_candidates_list:
-                f.write(f"  - {x}\n")
+            for nom_cand, cands in no_vat_candidates_list:
+                f.write(f"  - {nom_cand} -> candidats trouves :\n")
+                for c in cands:
+                    f.write(f"      {c[0]} - SIREN {c[1]}, {c[2]} - {ANNUAIRE_BASE}{c[1]}\n")
             f.write("\n")
         if unchanged_list:
             f.write("Lignes sans numero de TVA ni correspondance trouvee par nom :\n")
