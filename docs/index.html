@@ -65,6 +65,11 @@
   }
   ul.limits strong{font-weight:700}
 
+  /* Sections "Objectif" et "Limites" : pas de cadre blanc (cartes a plat) */
+  #objectif .card{background:transparent; border:none; box-shadow:none; padding:0}
+  #limites ul.limits li{background:transparent; border:none; box-shadow:none; padding:4px 0 4px 40px}
+  #limites ul.limits li::before{left:6px; top:6px}
+
   section{padding:46px 0}
   section + section{border-top:1px solid var(--line)}
   h2{font-size:23px; margin:0 0 8px}
