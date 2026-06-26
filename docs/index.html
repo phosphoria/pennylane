@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pennylane — compléter automatiquement les coordonnées fournisseurs</title>
+<meta name="description" content="Outil simple pour compléter automatiquement les coordonnées manquantes (SIRET, adresse, ville…) des fournisseurs et clients exportés depuis Pennylane.">
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#ffffff; --ink:#1d2530; --muted:#5b6675;
+    --brand:#2f6df6; --brand-dark:#1f51c4; --line:#e6e9ef; --ok:#1f9d6b;
+    --radius:16px; --shadow:0 1px 2px rgba(16,24,40,.05),0 8px 24px rgba(16,24,40,.06);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:820px; margin:0 auto; padding:0 20px}
+  a{color:var(--brand); text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  header.hero{
+    background:linear-gradient(160deg,#eaf0ff 0%,#f6f7f9 70%);
+    border-bottom:1px solid var(--line); padding:64px 0 48px;
+  }
+  .badge{
+    display:inline-block; font-size:13px; font-weight:600; color:var(--brand-dark);
+    background:#e3ebff; border:1px solid #cfddff; padding:4px 12px; border-radius:999px;
+    margin-bottom:18px;
+  }
+  h1{font-size:34px; line-height:1.2; margin:0 0 14px}
+  .lead{font-size:18px; color:var(--muted); margin:0 0 28px; max-width:620px}
+  .cta{
+    display:inline-flex; align-items:center; gap:9px; background:var(--brand); color:#fff;
+    font-weight:600; padding:13px 22px; border-radius:12px; box-shadow:var(--shadow);
+    transition:background .15s ease;
+  }
+  .cta:hover{background:var(--brand-dark); text-decoration:none}
+  .cta.secondary{background:#fff; color:var(--ink); border:1px solid var(--line); margin-left:10px}
+  .cta.secondary:hover{background:#fafbfc}
+
+  section{padding:46px 0}
+  section + section{border-top:1px solid var(--line)}
+  h2{font-size:23px; margin:0 0 8px}
+  .sub{color:var(--muted); margin:0 0 26px}
+
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}}
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:20px 22px; box-shadow:var(--shadow);
+  }
+  .card h3{margin:0 0 6px; font-size:16px}
+  .card p{margin:0; color:var(--muted); font-size:15px}
+
+  ol.steps{counter-reset:s; list-style:none; padding:0; margin:0; display:grid; gap:14px}
+  ol.steps li{
+    position:relative; background:var(--card); border:1px solid var(--line);
+    border-radius:var(--radius); padding:18px 20px 18px 64px; box-shadow:var(--shadow);
+  }
+  ol.steps li::before{
+    counter-increment:s; content:counter(s);
+    position:absolute; left:18px; top:16px; width:32px; height:32px; border-radius:50%;
+    background:var(--brand); color:#fff; font-weight:700; display:flex;
+    align-items:center; justify-content:center; font-size:15px;
+  }
+  ol.steps strong{display:block; margin-bottom:2px}
+  ol.steps span{color:var(--muted); font-size:15px}
+  kbd{
+    background:#eef1f6; border:1px solid #dce1ea; border-bottom-width:2px;
+    border-radius:6px; padding:1px 7px; font-size:13px; font-family:inherit; font-weight:600;
+  }
+  .note{
+    margin-top:22px; background:#fff8ec; border:1px solid #f3e2bd; border-radius:12px;
+    padding:14px 16px; font-size:14.5px; color:#705a25;
+  }
+
+  /* contact */
+  .contact{
+    background:linear-gradient(160deg,#101826 0%,#1b2740 100%); color:#eef2f8;
+    border-radius:var(--radius); padding:30px; box-shadow:var(--shadow);
+    display:flex; gap:22px; align-items:center; flex-wrap:wrap;
+  }
+  .avatar{
+    width:64px; height:64px; border-radius:50%; flex:0 0 auto;
+    background:linear-gradient(135deg,#3a7bff,#9d6bff); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-weight:700; font-size:24px;
+  }
+  .contact .who{flex:1 1 220px}
+  .contact .who .name{font-size:20px; font-weight:700}
+  .contact .who .role{color:#aab6cc; font-size:15px}
+  .contact .links{display:flex; gap:10px; flex-wrap:wrap}
+  .clink{
+    display:inline-flex; align-items:center; gap:7px; background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.16); color:#eef2f8; padding:9px 14px;
+    border-radius:10px; font-weight:600; font-size:14.5px;
+  }
+  .clink:hover{background:rgba(255,255,255,.16); text-decoration:none}
+  .clink svg{width:16px; height:16px; fill:currentColor}
+
+  footer{padding:34px 0 60px; color:var(--muted); font-size:13.5px; text-align:center}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="badge">Outil interne · gratuit · sans installation compliquée</span>
+    <h1>Complétez automatiquement les coordonnées de vos fournisseurs Pennylane</h1>
+    <p class="lead">À partir du numéro de TVA (ou du nom), l'outil retrouve le SIRET,
+      l'adresse, le code postal, la ville et le pays manquants — puis prépare un
+      fichier prêt à réimporter dans Pennylane.</p>
+    <a class="cta" href="https://github.com/phosphoria/pennylane/archive/refs/heads/main.zip">⬇ Télécharger l'outil</a>
+    <a class="cta secondary" href="https://github.com/phosphoria/pennylane">Voir le code sur GitHub</a>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <h2>À quoi ça sert</h2>
+    <p class="sub">Pennylane permet d'exporter les fiches incomplètes en CSV, puis de réimporter le fichier corrigé. L'outil automatise l'étape intermédiaire.</p>
+    <div class="grid">
+      <div class="card"><h3>🇫🇷 Fournisseurs français</h3><p>SIRET, adresse, code postal et ville récupérés via la base officielle Sirene/INSEE.</p></div>
+      <div class="card"><h3>🇪🇺 Fournisseurs européens</h3><p>Nom et adresse via VIES (Commission européenne), quand le pays les transmet.</p></div>
+      <div class="card"><h3>🔎 Sans numéro de TVA</h3><p>Recherche prudente par nom : complété seulement en cas de correspondance unique et certaine.</p></div>
+      <div class="card"><h3>✅ Prêt à réimporter</h3><p>Un fichier « traités » réimportable dans Pennylane + un fichier « à traiter » + un rapport.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Installation</h2>
+    <p class="sub">Pas de ligne de commande. Deux fichiers, un double-clic.</p>
+    <ol class="steps">
+      <li><strong>Télécharger</strong><span>Cliquez sur « Télécharger l'outil » ci-dessus, puis décompressez le fichier ZIP (double-clic).</span></li>
+      <li><strong>Ouvrir le dossier <kbd>src</kbd></strong><span>Les deux seuls fichiers nécessaires sont <kbd>pennylane_enrich.py</kbd> et <kbd>Traiter un export Pennylane.command</kbd>. Gardez-les ensemble dans le même dossier.</span></li>
+      <li><strong>Lancer</strong><span>Double-cliquez sur <kbd>Traiter un export Pennylane.command</kbd>. La première fois : <kbd>clic droit → Ouvrir</kbd> pour passer l'alerte de sécurité macOS.</span></li>
+      <li><strong>Python (si demandé)</strong><span>Si macOS propose d'installer Python, acceptez (un clic), patientez, puis relancez.</span></li>
+    </ol>
+    <div class="note">💡 macOS uniquement. Au premier lancement, l'alerte de sécurité est normale pour tout fichier téléchargé — le <kbd>clic droit → Ouvrir</kbd> ne se fait qu'une fois.</div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Utilisation au quotidien</h2>
+    <p class="sub">Une fois la fenêtre ouverte, tout se fait au glisser-déposer.</p>
+    <ol class="steps">
+      <li><strong>Exporter depuis Pennylane</strong><span>Récupérez l'export CSV « fournisseurs » (ou « clients ») à compléter.</span></li>
+      <li><strong>Glisser-déposer</strong><span>Glissez ce fichier CSV (ou le dossier d'un client) dans la fenêtre, puis appuyez sur <kbd>Entrée</kbd>.</span></li>
+      <li><strong>Récupérer les résultats</strong><span>Trois fichiers sont créés à côté de l'original : <kbd>…traites.csv</kbd> (à réimporter), <kbd>…a_traiter.csv</kbd> (à finir à la main) et <kbd>…report.txt</kbd> (le détail, avec liens de vérification).</span></li>
+      <li><strong>Réimporter</strong><span>Importez le fichier <kbd>…traites.csv</kbd> dans Pennylane.</span></li>
+    </ol>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Une question, un besoin ?</h2>
+    <p class="sub">Contactez l'auteur de l'outil.</p>
+    <div class="contact">
+      <div class="avatar">VC</div>
+      <div class="who">
+        <div class="name">Vincent Clair</div>
+        <div class="role">Tech Lead / Architecte Logiciel</div>
+      </div>
+      <div class="links">
+        <a class="clink" href="https://www.linkedin.com/in/vincent-clair/" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.07 2.07 0 1 1 0-4.14 2.07 2.07 0 0 1 0 4.14zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>
+          LinkedIn
+        </a>
+        <a class="clink" href="https://www.malt.fr/profile/vincentclair" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 3.2 1.9 4.9 4.9 1.9-4.9 1.9L12 18.8l-1.9-4.9L5.2 12l4.9-1.9L12 5.2z"/></svg>
+          Malt
+        </a>
+        <a class="clink" href="mailto:vincent.clair@inneair.com">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 4h20v16H2V4zm10 7L3.2 5.4 2 6.2 12 13l10-6.8-1.2-.8L12 11z"/></svg>
+          Email
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Données issues des services publics officiels et gratuits
+    <a href="https://recherche-entreprises.api.gouv.fr/">Sirene/INSEE</a> et
+    <a href="https://ec.europa.eu/taxation_customs/vies/">VIES</a>.
+    Les exports clients ne sont jamais publiés.
+  </div>
+</footer>
+
+</body>
+</html>

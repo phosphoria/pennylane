@@ -1,0 +1,12 @@
+/.idea
+
+# macOS
+.DS_Store
+
+# Données clients réelles — ne jamais versionner (confidentialité fournisseurs)
+*.csv
+*.report.txt
+
+# Python
+__pycache__/
+*.pyc
