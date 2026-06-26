@@ -70,6 +70,14 @@
   h2{font-size:23px; margin:0 0 8px}
   .sub{color:var(--muted); margin:0 0 26px}
 
+  /* fil d'Ariane */
+  .crumbs{display:flex; flex-wrap:wrap; align-items:center; gap:8px;
+    font-size:13.5px; margin:0 0 22px}
+  .crumbs a{color:var(--muted); text-decoration:none}
+  .crumbs a:hover{color:var(--brand)}
+  .crumbs a.active{color:var(--ink); font-weight:700}
+  .crumbs .sep{color:#c2c9d4}
+
   .grid{display:grid; grid-template-columns:1fr 1fr; gap:16px}
   @media (max-width:640px){.grid{grid-template-columns:1fr}}
   .card{
@@ -149,7 +157,6 @@
 
 <header class="hero">
   <div class="wrap">
-    <span class="badge">Outil interne · gratuit · sans installation compliquée</span>
     <h1>Complétez automatiquement les coordonnées de vos fournisseurs Pennylane</h1>
     <p class="lead">À partir du numéro de TVA (ou du nom), l'outil retrouve le SIRET,
       l'adresse, le code postal, la ville et le pays manquants — puis prépare un
@@ -157,8 +164,15 @@
   </div>
 </header>
 
-<section>
+<section id="objectif">
   <div class="wrap">
+    <nav class="crumbs" aria-label="Navigation">
+      <a href="#objectif" class="active">Objectif</a><span class="sep">›</span>
+      <a href="#installation">Installation</a><span class="sep">›</span>
+      <a href="#utilisation">Utilisation</a><span class="sep">›</span>
+      <a href="#limites">Limites</a><span class="sep">›</span>
+      <a href="#aide">Aide</a>
+    </nav>
     <h2>À quoi ça sert</h2>
     <p class="sub">Pennylane permet d'exporter les fiches incomplètes en CSV, puis de réimporter le fichier corrigé. L'outil automatise l'étape intermédiaire.</p>
     <div class="grid">
@@ -170,8 +184,15 @@
   </div>
 </section>
 
-<section>
+<section id="installation">
   <div class="wrap">
+    <nav class="crumbs" aria-label="Navigation">
+      <a href="#objectif">Objectif</a><span class="sep">›</span>
+      <a href="#installation" class="active">Installation</a><span class="sep">›</span>
+      <a href="#utilisation">Utilisation</a><span class="sep">›</span>
+      <a href="#limites">Limites</a><span class="sep">›</span>
+      <a href="#aide">Aide</a>
+    </nav>
     <h2>Installation</h2>
     <p class="sub">Pas de ligne de commande. À faire une seule fois — suivez les images.</p>
     <ol class="steps">
@@ -274,8 +295,15 @@
   </div>
 </section>
 
-<section>
+<section id="utilisation">
   <div class="wrap">
+    <nav class="crumbs" aria-label="Navigation">
+      <a href="#objectif">Objectif</a><span class="sep">›</span>
+      <a href="#installation">Installation</a><span class="sep">›</span>
+      <a href="#utilisation" class="active">Utilisation</a><span class="sep">›</span>
+      <a href="#limites">Limites</a><span class="sep">›</span>
+      <a href="#aide">Aide</a>
+    </nav>
     <h2>Utilisation au quotidien</h2>
     <p class="sub">Une fois la fenêtre ouverte, tout se fait au glisser-déposer.</p>
     <ol class="steps">
@@ -287,8 +315,15 @@
   </div>
 </section>
 
-<section>
+<section id="limites">
   <div class="wrap">
+    <nav class="crumbs" aria-label="Navigation">
+      <a href="#objectif">Objectif</a><span class="sep">›</span>
+      <a href="#installation">Installation</a><span class="sep">›</span>
+      <a href="#utilisation">Utilisation</a><span class="sep">›</span>
+      <a href="#limites" class="active">Limites</a><span class="sep">›</span>
+      <a href="#aide">Aide</a>
+    </nav>
     <h2>Limites connues</h2>
     <p class="sub">Quelques cas que l'outil ne peut pas compléter tout seul — à finir à la main.</p>
     <ul class="limits">
@@ -300,8 +335,15 @@
   </div>
 </section>
 
-<section>
+<section id="aide">
   <div class="wrap">
+    <nav class="crumbs" aria-label="Navigation">
+      <a href="#objectif">Objectif</a><span class="sep">›</span>
+      <a href="#installation">Installation</a><span class="sep">›</span>
+      <a href="#utilisation">Utilisation</a><span class="sep">›</span>
+      <a href="#limites">Limites</a><span class="sep">›</span>
+      <a href="#aide" class="active">Aide</a>
+    </nav>
     <h2>Une question, un besoin ?</h2>
     <p class="sub">N'hésitez pas à nous contacter.</p>
     <div class="contacts">
