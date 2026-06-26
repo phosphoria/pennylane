@@ -79,17 +79,21 @@
   }
 
   /* contact */
+  .contacts{display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:stretch}
+  @media (max-width:640px){.contacts{grid-template-columns:1fr}}
   .contact{
     background:linear-gradient(160deg,#101826 0%,#1b2740 100%); color:#eef2f8;
-    border-radius:var(--radius); padding:30px; box-shadow:var(--shadow);
-    display:flex; gap:22px; align-items:center; flex-wrap:wrap;
+    border-radius:var(--radius); padding:26px; box-shadow:var(--shadow);
+    display:flex; flex-direction:column; gap:18px;
   }
+  .contact .head{display:flex; align-items:center; gap:16px}
   .avatar{
-    width:64px; height:64px; border-radius:50%; flex:0 0 auto;
+    width:64px; height:64px; border-radius:50%; flex:0 0 auto; position:relative; overflow:hidden;
     background:linear-gradient(135deg,#3a7bff,#9d6bff); color:#fff;
     display:flex; align-items:center; justify-content:center; font-weight:700; font-size:24px;
   }
-  .contact .who{flex:1 1 220px}
+  .avatar img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
+  .contact .who{flex:1 1 auto; min-width:0}
   .contact .who .name{font-size:20px; font-weight:700}
   .contact .who .role{color:#aab6cc; font-size:15px}
   .contact .links{display:flex; gap:10px; flex-wrap:wrap}
@@ -161,12 +165,15 @@
 <section>
   <div class="wrap">
     <h2>Une question, un besoin ?</h2>
-    <p class="sub">Contactez l'auteur de l'outil.</p>
+    <p class="sub">N'hésitez pas à nous contacter.</p>
+    <div class="contacts">
     <div class="contact">
-      <div class="avatar">VC</div>
-      <div class="who">
-        <div class="name">Vincent Clair</div>
-        <div class="role">Tech Lead / Architecte Logiciel</div>
+      <div class="head">
+        <div class="avatar"><img src="img/vincent-clair.png" alt="Vincent Clair" onerror="this.remove()">VC</div>
+        <div class="who">
+          <div class="name">Vincent Clair</div>
+          <div class="role">Tech Lead / Architecte Logiciel</div>
+        </div>
       </div>
       <div class="links">
         <a class="clink" href="https://www.linkedin.com/in/vincent-clair/" target="_blank" rel="noopener">
@@ -174,7 +181,7 @@
           LinkedIn
         </a>
         <a class="clink" href="https://www.malt.fr/profile/vincentclair" target="_blank" rel="noopener">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 3.2 1.9 4.9 4.9 1.9-4.9 1.9L12 18.8l-1.9-4.9L5.2 12l4.9-1.9L12 5.2z"/></svg>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="6" fill="#FC5757"/><text x="12" y="18" text-anchor="middle" font-family="-apple-system,Helvetica,Arial,sans-serif" font-size="16" font-weight="800" fill="#fff">m</text></svg>
           Malt
         </a>
         <a class="clink" href="mailto:vincent.clair@inneair.com">
@@ -182,6 +189,26 @@
           Email
         </a>
       </div>
+    </div>
+    <div class="contact">
+      <div class="head">
+        <div class="avatar"><img src="img/janice-fixari.jpeg" alt="Janice Fixari" onerror="this.remove()">JF</div>
+        <div class="who">
+          <div class="name">Janice Fixari</div>
+          <div class="role">Responsable Administrative et Financière</div>
+        </div>
+      </div>
+      <div class="links">
+        <a class="clink" href="https://www.linkedin.com/in/janice-fixari-clair-487785ba/" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.07 2.07 0 1 1 0-4.14 2.07 2.07 0 0 1 0 4.14zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>
+          LinkedIn
+        </a>
+        <a class="clink" href="mailto:janice.fixari@phosphoria.fr">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 4h20v16H2V4zm10 7L3.2 5.4 2 6.2 12 13l10-6.8-1.2-.8L12 11z"/></svg>
+          Email
+        </a>
+      </div>
+    </div>
     </div>
   </div>
 </section>
