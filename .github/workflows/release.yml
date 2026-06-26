@@ -1,0 +1,40 @@
+name: Release
+
+# Publie une Release contenant UNIQUEMENT les deux fichiers necessaires
+# (le script + le lanceur), des qu'un tag de version est pousse.
+#
+#   git tag v1.0
+#   git push origin v1.0
+#
+# -> cree/met a jour la Release "v1.0" avec l'asset "pennylane-outil.zip".
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write   # necessaire pour creer la Release et y attacher le zip
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Recuperer le depot
+        uses: actions/checkout@v4
+
+      - name: Construire le zip (deux fichiers uniquement)
+        run: |
+          mkdir -p dist/pennylane
+          cp "src/pennylane_enrich.py" dist/pennylane/
+          cp "src/Traiter un export Pennylane.command" dist/pennylane/
+          cd dist
+          zip -r pennylane-outil.zip pennylane
+          echo "Contenu du zip :"
+          unzip -l pennylane-outil.zip
+
+      - name: Publier la Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/pennylane-outil.zip
+          generate_release_notes: true

@@ -76,23 +76,24 @@ Le détail des raisons et des compromis derrière ces limites est dans
 Pas d'installation compliquée : il suffit de récupérer **deux fichiers** et de
 double-cliquer. Aucune ligne de commande.
 
-1. En haut de la page GitHub du projet, cliquer sur le bouton vert **« Code »**,
-   puis **« Download ZIP »**.
-2. Décompresser le fichier téléchargé (double-clic dessus).
-3. Ouvrir le dossier **`src`**. Les **deux seuls fichiers nécessaires** pour
-   faire tourner l'outil sont :
+1. Cliquer sur le bouton **« ⬇ Télécharger »** de la
+   [page web du projet](https://phosphoria.github.io/pennylane/) (alternative :
+   télécharger `pennylane-outil.zip` depuis la dernière
+   [Release GitHub](https://github.com/phosphoria/pennylane/releases/latest)).
+   Le zip ne contient **que les deux fichiers nécessaires** :
    - **`pennylane_enrich.py`** — le moteur ;
    - **`Traiter un export Pennylane.command`** — le bouton à double-cliquer.
-
-   Gardez ces deux fichiers **ensemble dans le même dossier** (peu importe où :
-   Bureau, Documents…). Vous pouvez ranger à côté un sous-dossier par client
-   avec ses exports Pennylane.
-4. Double-cliquer sur **`Traiter un export Pennylane.command`**. La toute
+2. Décompresser le fichier téléchargé (double-clic dessus). Vous obtenez un
+   dossier contenant les deux fichiers ; gardez-les **ensemble**. Vous pouvez
+   ranger à côté un sous-dossier par client avec ses exports Pennylane.
+3. Double-cliquer sur **`Traiter un export Pennylane.command`**. La toute
    première fois, macOS bloque les fichiers téléchargés : faites alors
    **clic droit → Ouvrir**, puis confirmez. Les fois suivantes, un simple
    double-clic suffit.
-5. Si une fenêtre macOS propose d'**installer Python**, acceptez (un clic),
-   attendez la fin, puis relancez le lanceur.
+4. Si une fenêtre macOS propose d'**installer Python**, acceptez (un clic),
+   attendez la fin, puis relancez le lanceur. Python est simplement le **moteur
+   gratuit et standard qui exécute le script** (édité par une fondation à but non
+   lucratif, utilisé partout dans le monde) : rien d'inquiétant à installer.
 
 C'est tout. L'utilisation au quotidien est décrite juste en dessous.
 
@@ -200,12 +201,30 @@ le lien de chaque candidat, pour trancher à la main en quelques secondes.
 .
 ├── README.md          # utilisation
 ├── CONCEPTION.md      # choix techniques, dépendances, contraintes, compromis
+├── .github/
+│   └── workflows/
+│       └── release.yml  # construit le zip de release (2 fichiers) sur tag
 ├── docs/
 │   └── index.html     # page publique (GitHub Pages), orientée utilisateur final
 └── src/
     ├── pennylane_enrich.py                  # le script principal
     └── Traiter un export Pennylane.command  # lanceur double-cliquable (macOS)
 ```
+
+### Publier une nouvelle version (Release)
+
+Le zip de distribution (`pennylane-outil.zip`, **deux fichiers uniquement**) est
+fabriqué automatiquement par GitHub Actions à chaque tag de version :
+
+```bash
+git tag v1.0
+git push origin v1.0
+```
+
+Le workflow `.github/workflows/release.yml` crée alors la Release et y attache le
+zip. Le bouton « Télécharger » de la page et le README pointent vers
+`releases/latest/download/pennylane-outil.zip`, qui sert toujours la dernière
+version.
 
 > Les exports CSV des clients ne sont **pas** versionnés (données fournisseurs
 > réelles) : `.gitignore` exclut tous les `.csv` et `.report.txt`.
