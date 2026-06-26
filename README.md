@@ -84,12 +84,20 @@ double-cliquer. Aucune ligne de commande.
    - **`pennylane_enrich.py`** — le moteur ;
    - **`Traiter un export Pennylane.command`** — le bouton à double-cliquer.
 2. Décompresser le fichier téléchargé (double-clic dessus). Vous obtenez un
-   dossier contenant les deux fichiers ; gardez-les **ensemble**. Vous pouvez
-   ranger à côté un sous-dossier par client avec ses exports Pennylane.
-3. Double-cliquer sur **`Traiter un export Pennylane.command`**. La toute
-   première fois, macOS bloque les fichiers téléchargés : faites alors
-   **clic droit → Ouvrir**, puis confirmez. Les fois suivantes, un simple
-   double-clic suffit.
+   dossier contenant les deux fichiers ; gardez-les **ensemble**. **Déplacez ce
+   dossier dans votre dossier personnel** (l'icône maison à votre nom dans le
+   Finder) — évitez **Téléchargements / Bureau / Documents**, que macOS protège
+   (sinon erreur *« Operation not permitted »* à l'exécution). Vous pouvez ranger
+   à côté un sous-dossier par client avec ses exports Pennylane.
+3. Double-cliquer sur **`Traiter un export Pennylane.command`**. Au premier
+   lancement, macOS bloque les fichiers téléchargés ; il faut l'autoriser **une
+   seule fois**, en trois écrans :
+   1. la fenêtre d'alerte apparaît → cliquer **« Annuler »** (jamais
+      « corbeille ») ;
+   2. ouvrir **menu  ▸ Réglages Système ▸ Confidentialité et sécurité**,
+      descendre tout en bas, cliquer **« Ouvrir quand même »** ;
+   3. à la dernière confirmation, cliquer **« Ouvrir »**. C'est mémorisé : les
+      fois suivantes, un simple double-clic suffit.
 4. Si une fenêtre macOS propose d'**installer Python**, acceptez (un clic),
    attendez la fin, puis relancez le lanceur. Python est simplement le **moteur
    gratuit et standard qui exécute le script** (édité par une fondation à but non
@@ -104,8 +112,8 @@ C'est tout. L'utilisation au quotidien est décrite juste en dessous.
 Un lanceur **double-cliquable** est fourni pour macOS :
 `src/Traiter un export Pennylane.command`
 
-1. Double-cliquer sur le fichier (au premier lancement : **clic droit → Ouvrir**
-   pour passer l'avertissement de sécurité macOS).
+1. Double-cliquer sur le fichier (au tout premier lancement, voir l'étape 3 de
+   l'[Installation](#installation-pour-débutante) pour autoriser l'outil).
 2. Une fenêtre Terminal s'ouvre.
 3. **Glisser-déposer** le CSV Pennylane (ou le dossier d'un client) dans la
    fenêtre, puis appuyer sur **Entrée**.

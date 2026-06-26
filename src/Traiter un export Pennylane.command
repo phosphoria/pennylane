@@ -34,6 +34,25 @@ if [ ! -f "$PY_SCRIPT" ]; then
   exit 1
 fi
 
+# --- Verifier que macOS autorise la lecture des fichiers (protection TCC) ---
+# Dans Telechargements / Bureau / Documents, macOS peut interdire la lecture
+# (erreur "Operation not permitted"). On previent l'utilisateur clairement.
+if [ ! -r "$PY_SCRIPT" ]; then
+  echo "  [!] macOS bloque l'acces aux fichiers de ce dossier (securite)."
+  echo
+  echo "      SOLUTION la plus simple :"
+  echo "      deplacez le dossier hors de \"Telechargements\", \"Bureau\" et"
+  echo "      \"Documents\" — par exemple dans votre dossier personnel (l'icone"
+  echo "      maison a votre nom dans le Finder) — puis relancez ce fichier."
+  echo
+  echo "      Si une fenetre demande l'autorisation d'acceder au dossier,"
+  echo "      cliquez sur \"OK\"."
+  echo
+  echo "Appuyez sur Entree pour fermer."
+  read -r _
+  exit 1
+fi
+
 # --- Trouver Python 3 ---
 PYBIN=""
 for cand in python3 /usr/bin/python3 /usr/local/bin/python3 /opt/homebrew/bin/python3; do

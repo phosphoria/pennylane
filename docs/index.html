@@ -100,6 +100,14 @@
     margin-top:22px; background:#fff8ec; border:1px solid #f3e2bd; border-radius:12px;
     padding:14px 16px; font-size:14.5px; color:#705a25;
   }
+  .figure{
+    margin-top:12px; background:#eef1f6; border:1px solid var(--line);
+    border-radius:12px; padding:16px; text-align:center;
+  }
+  .figure svg{width:100%; max-width:380px; height:auto; display:block; margin:0 auto}
+  .figure figcaption{margin-top:10px; font-size:13.5px; color:var(--muted); line-height:1.5}
+  .figure .tag{display:inline-block; background:#dfe7ff; color:var(--brand-dark);
+    border-radius:6px; padding:1px 8px; font-weight:700; font-size:12.5px}
 
   /* contact */
   .contacts{display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:stretch}
@@ -165,14 +173,104 @@
 <section>
   <div class="wrap">
     <h2>Installation</h2>
-    <p class="sub">Pas de ligne de commande. Deux fichiers, un double-clic.</p>
+    <p class="sub">Pas de ligne de commande. À faire une seule fois — suivez les images.</p>
     <ol class="steps">
-      <li><strong>Télécharger</strong><span>Cliquez sur le bouton <strong>« ⬇ Télécharger »</strong> en haut à droite de la page (alternative : la <a href="https://github.com/phosphoria/pennylane/releases/latest" target="_blank" rel="noopener">dernière version sur GitHub</a>), puis décompressez le fichier ZIP (double-clic).</span></li>
-      <li><strong>Deux fichiers</strong><span>Le dossier obtenu contient exactement <kbd>pennylane_enrich.py</kbd> et <kbd>Traiter un export Pennylane.command</kbd>. Gardez-les ensemble dans le même dossier.</span></li>
-      <li><strong>Lancer</strong><span>Double-cliquez sur <kbd>Traiter un export Pennylane.command</kbd>. La première fois : <kbd>clic droit → Ouvrir</kbd> pour passer l'alerte de sécurité macOS.</span></li>
-      <li><strong>Python (si demandé)</strong><span>Python est simplement le <strong>moteur gratuit et standard qui exécute le script</strong> (édité par une fondation à but non lucratif, utilisé partout dans le monde) — rien d'inquiétant à installer. Si macOS le propose, acceptez (un clic), patientez, puis relancez.</span></li>
+
+      <li><strong>Télécharger l'outil</strong>
+        <span>Cliquez sur le bouton <strong>« ⬇ Télécharger »</strong> en haut à droite de cette page (alternative : la <a href="https://github.com/phosphoria/pennylane/releases/latest" target="_blank" rel="noopener">dernière version sur GitHub</a>).</span>
+        <div class="figure">
+          <svg viewBox="0 0 380 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Bouton Télécharger en haut à droite">
+            <rect x="6" y="10" width="368" height="100" rx="10" fill="#fff" stroke="#dfe3ea"/>
+            <rect x="232" y="22" width="92" height="30" rx="9" fill="#2f6df6"/>
+            <text x="278" y="42" text-anchor="middle" font-size="13" font-weight="700" fill="#fff" font-family="sans-serif">⬇ Télécharger</text>
+            <rect x="20" y="26" width="120" height="9" rx="4" fill="#e3e7ee"/>
+            <rect x="20" y="44" width="80" height="9" rx="4" fill="#eef1f6"/>
+            <!-- curseur -->
+            <path d="M300 70 l0 28 l7 -7 l5 11 l5 -2 l-5 -11 l10 0 z" fill="#1d2530" stroke="#fff" stroke-width="1.5"/>
+          </svg>
+          <figcaption>Le fichier <b>pennylane-outil.zip</b> se télécharge.</figcaption>
+        </div>
+      </li>
+
+      <li><strong>Décompresser &amp; ranger</strong>
+        <span>Double-cliquez sur le fichier <kbd>.zip</kbd> téléchargé. Vous obtenez un dossier avec <b>deux fichiers</b> ; gardez-les ensemble. <b>Important :</b> déplacez ce dossier dans votre <b>dossier personnel</b> (l'icône maison à votre nom dans le Finder) — évitez de le laisser dans <i>Téléchargements</i>, <i>Bureau</i> ou <i>Documents</i>, que macOS protège (sinon l'outil ne pourra pas lire les fichiers).</span>
+        <div class="figure">
+          <svg viewBox="0 0 380 130" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Le zip se décompresse en un dossier de deux fichiers">
+            <!-- zip -->
+            <rect x="24" y="35" width="60" height="62" rx="8" fill="#fff" stroke="#cfd5de"/>
+            <rect x="50" y="35" width="8" height="40" fill="#cfd5de"/>
+            <text x="54" y="112" text-anchor="middle" font-size="11" fill="#5b6675" font-family="sans-serif">.zip</text>
+            <!-- fleche -->
+            <path d="M104 66 h44" stroke="#9aa4b2" stroke-width="3" fill="none"/>
+            <path d="M148 66 l-10 -6 v12 z" fill="#9aa4b2"/>
+            <!-- dossier -->
+            <path d="M176 44 h40 l8 9 h84 a8 8 0 0 1 8 8 v44 a8 8 0 0 1 -8 8 h-132 a8 8 0 0 1 -8 -8 v-53 a8 8 0 0 1 8 -8 z" fill="#bcd3ff" stroke="#8fb4f3"/>
+            <rect x="196" y="70" width="120" height="16" rx="4" fill="#fff" stroke="#d8dde5"/>
+            <text x="206" y="82" font-size="10" fill="#5b6675" font-family="sans-serif">pennylane_enrich.py</text>
+            <rect x="196" y="90" width="120" height="16" rx="4" fill="#fff" stroke="#d8dde5"/>
+            <text x="206" y="102" font-size="10" fill="#5b6675" font-family="sans-serif">Traiter un export…command</text>
+          </svg>
+          <figcaption>Deux fichiers : le moteur et le bouton à double-cliquer.</figcaption>
+        </div>
+      </li>
+
+      <li><strong>Autoriser l'outil (une seule fois)</strong>
+        <span>Double-cliquez sur <kbd>Traiter un export Pennylane.command</kbd>. macOS bloque par sécurité tout fichier venu d'internet : il faut l'autoriser une fois, en 3 écrans.</span>
+
+        <div class="figure">
+          <svg viewBox="0 0 380 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Premier message : cliquez sur Annuler">
+            <rect x="64" y="12" width="252" height="188" rx="16" fill="#fff" stroke="#d8dde5"/>
+            <rect x="170" y="26" width="40" height="32" rx="8" fill="#11151c"/>
+            <text x="178" y="48" font-size="13" fill="#7CFC8A" font-family="monospace">&gt;_</text>
+            <text x="190" y="86" text-anchor="middle" font-size="9.5" fill="#1d2530" font-family="sans-serif">« Traiter un export Pennylane.command »</text>
+            <text x="190" y="101" text-anchor="middle" font-size="9.5" fill="#5b6675" font-family="sans-serif">ne peut pas être ouvert car Apple ne peut</text>
+            <text x="190" y="115" text-anchor="middle" font-size="9.5" fill="#5b6675" font-family="sans-serif">pas vérifier son contenu.</text>
+            <rect x="78" y="158" width="126" height="28" rx="8" fill="#f0f1f4" stroke="#d8dde5"/>
+            <text x="141" y="176" text-anchor="middle" font-size="9" fill="#777" font-family="sans-serif">Déplacer à la corbeille</text>
+            <rect x="218" y="158" width="84" height="28" rx="8" fill="#2f6df6"/>
+            <text x="260" y="176" text-anchor="middle" font-size="11.5" fill="#fff" font-weight="700" font-family="sans-serif">Annuler</text>
+            <path d="M260 198 l-7 -9 h14 z" fill="#2f6df6"/>
+          </svg>
+          <figcaption><span class="tag">Écran 1</span> Ce message apparaît : cliquez sur <b>« Annuler »</b> (jamais « corbeille »).</figcaption>
+        </div>
+
+        <div class="figure">
+          <svg viewBox="0 0 380 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Réglages Système, Confidentialité et sécurité, Ouvrir quand même">
+            <rect x="26" y="14" width="328" height="184" rx="12" fill="#fff" stroke="#d8dde5"/>
+            <circle cx="44" cy="30" r="4.5" fill="#ff5f57"/><circle cx="60" cy="30" r="4.5" fill="#febc2e"/><circle cx="76" cy="30" r="4.5" fill="#28c840"/>
+            <text x="200" y="34" text-anchor="middle" font-size="11" fill="#5b6675" font-weight="700" font-family="sans-serif">Confidentialité et sécurité</text>
+            <line x1="26" y1="46" x2="354" y2="46" stroke="#eef1f6"/>
+            <text x="46" y="92" font-size="11" fill="#1d2530" font-family="sans-serif">« Traiter un export Pennylane.command » a été</text>
+            <text x="46" y="108" font-size="11" fill="#1d2530" font-family="sans-serif">bloqué pour protéger votre Mac.</text>
+            <rect x="206" y="132" width="130" height="32" rx="8" fill="#eef1f6" stroke="#c4ccd8"/>
+            <text x="271" y="153" text-anchor="middle" font-size="12" fill="#1d2530" font-weight="700" font-family="sans-serif">Ouvrir quand même</text>
+            <path d="M271 178 l-7 -9 h14 z" fill="#2f6df6"/>
+          </svg>
+          <figcaption><span class="tag">Écran 2</span> Ouvrez <b>menu  ▸ Réglages Système ▸ Confidentialité et sécurité</b>, descendez tout en bas, puis cliquez <b>« Ouvrir quand même »</b>.</figcaption>
+        </div>
+
+        <div class="figure">
+          <svg viewBox="0 0 380 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Dernière confirmation : cliquez sur Ouvrir">
+            <rect x="74" y="12" width="232" height="176" rx="16" fill="#fff" stroke="#d8dde5"/>
+            <rect x="170" y="26" width="40" height="32" rx="8" fill="#11151c"/>
+            <text x="178" y="48" font-size="13" fill="#7CFC8A" font-family="monospace">&gt;_</text>
+            <text x="190" y="88" text-anchor="middle" font-size="10" fill="#1d2530" font-family="sans-serif">Voulez-vous vraiment ouvrir</text>
+            <text x="190" y="103" text-anchor="middle" font-size="9.5" fill="#5b6675" font-family="sans-serif">« Traiter un export Pennylane.command » ?</text>
+            <rect x="92" y="146" width="92" height="28" rx="8" fill="#f0f1f4" stroke="#d8dde5"/>
+            <text x="138" y="164" text-anchor="middle" font-size="11" fill="#777" font-family="sans-serif">Annuler</text>
+            <rect x="196" y="146" width="92" height="28" rx="8" fill="#2f6df6"/>
+            <text x="242" y="164" text-anchor="middle" font-size="11.5" fill="#fff" font-weight="700" font-family="sans-serif">Ouvrir</text>
+            <path d="M242 186 l-7 -9 h14 z" fill="#2f6df6"/>
+          </svg>
+          <figcaption><span class="tag">Écran 3</span> Une dernière fenêtre : cliquez <b>« Ouvrir »</b>. C'est mémorisé — ensuite, simple double-clic.</figcaption>
+        </div>
+      </li>
+
+      <li><strong>Python (si macOS le demande)</strong>
+        <span>Python est simplement le <strong>moteur gratuit et standard qui exécute le script</strong> (édité par une fondation à but non lucratif, utilisé partout dans le monde) — rien d'inquiétant. Si une fenêtre propose de l'installer, cliquez <b>« Installer »</b>, patientez, puis relancez l'outil.</span>
+      </li>
     </ol>
-    <div class="note">💡 macOS uniquement. Au premier lancement, l'alerte de sécurité est normale pour tout fichier téléchargé — le <kbd>clic droit → Ouvrir</kbd> ne se fait qu'une fois.</div>
+    <div class="note">💡 macOS uniquement. Le blocage de sécurité est normal pour tout fichier téléchargé : la manipulation des 3 écrans ne se fait <b>qu'une seule fois</b>.</div>
   </div>
 </section>
 
