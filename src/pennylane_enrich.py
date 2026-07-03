@@ -85,6 +85,7 @@ minutes pour plusieurs centaines de fournisseurs.
 
 import csv
 import sys
+import os
 import re
 import time
 import json
@@ -92,6 +93,47 @@ import argparse
 import urllib.request
 import urllib.error
 import urllib.parse
+
+# ---------------------------------------------------------------------------
+# Couleurs terminal (ANSI) : vert = reussite, orange = alerte, rouge = erreur.
+# Desactive automatiquement si la sortie n'est pas un terminal (ex: redirection
+# vers un fichier) ou si la variable d'environnement NO_COLOR est definie.
+# ---------------------------------------------------------------------------
+_ANSI = {
+    "green": "\033[32m",
+    "orange": "\033[33m",
+    "red": "\033[31m",
+    "cyan": "\033[36m",
+    "bold": "\033[1m",
+    "reset": "\033[0m",
+}
+
+
+def _use_color(stream) -> bool:
+    try:
+        return stream.isatty() and os.environ.get("NO_COLOR") is None
+    except Exception:
+        return False
+
+
+def paint(text: str, *codes, stream=None) -> str:
+    """Enrobe `text` de codes couleur ANSI si le flux le supporte."""
+    stream = stream or sys.stdout
+    if not _use_color(stream):
+        return text
+    return "".join(_ANSI[c] for c in codes) + text + _ANSI["reset"]
+
+
+def ok(text: str) -> str:      # reussite -> vert
+    return paint(text, "green")
+
+
+def warn(text: str) -> str:    # alerte -> orange
+    return paint(text, "orange")
+
+
+def err(text: str) -> str:     # erreur/exception -> rouge
+    return paint(text, "red")
 
 FR_API_BASE = "https://recherche-entreprises.api.gouv.fr/search"
 VIES_API_BASE = "https://ec.europa.eu/taxation_customs/vies/rest-api/ms"
@@ -208,7 +250,7 @@ def lookup_siren(siren: str):
     try:
         data = _http_get_json(url)
     except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError) as e:
-        print(f"  [!] Erreur reseau pour SIREN {siren}: {e}", file=sys.stderr)
+        print(warn(f"  [!] Erreur reseau pour SIREN {siren}: {e}"), file=sys.stderr)
         return None
 
     results = data.get("results", [])
@@ -248,6 +290,7 @@ def lookup_siren(siren: str):
         adresse_voie = adresse_complete
 
     return {
+        "siren": match.get("siren") or siren,
         "siret": siret,
         "adresse": adresse_voie,
         "code_postal": code_postal,
@@ -277,7 +320,7 @@ def lookup_by_name(nom: str):
     try:
         data = _http_get_json(url)
     except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError) as e:
-        print(f"  [!] Erreur reseau pour recherche par nom '{nom}': {e}", file=sys.stderr)
+        print(warn(f"  [!] Erreur reseau pour recherche par nom '{nom}': {e}"), file=sys.stderr)
         return None, []
 
     results = data.get("results", [])
@@ -340,7 +383,7 @@ def lookup_vies(country_code: str, vat_number: str):
     try:
         data = _http_get_json(url)
     except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError) as e:
-        print(f"  [!] Erreur reseau VIES pour {country_code}{vat_number}: {e}", file=sys.stderr)
+        print(warn(f"  [!] Erreur reseau VIES pour {country_code}{vat_number}: {e}"), file=sys.stderr)
         return None
 
     is_valid = data.get("isValid", False)
@@ -387,7 +430,7 @@ def load_already_done(path, col_nom, col_tva, delimiter):
             reader = csv.DictReader(f, delimiter=delimiter)
             rows = list(reader)
     except Exception as e:
-        print(f"  [!] Impossible de relire {path} pour la reprise: {e}", file=sys.stderr)
+        print(warn(f"  [!] Impossible de relire {path} pour la reprise: {e}"), file=sys.stderr)
         return set(), []
 
     keys = set()
@@ -441,20 +484,35 @@ def main():
         return None
 
     col_nom = find_col(["Nom"])
-    col_siret = find_col(["SIRET"])
+    # L'identifiant peut s'appeler "SIRET" (exports fournisseurs) OU "SIREN"
+    # (exports clients). On accepte les deux, et on ecrit la bonne valeur selon
+    # la colonne reellement presente.
+    col_id = find_col(["SIRET", "SIREN"])
+    id_kind = (col_id or "").upper() if col_id in ("SIRET", "SIREN") else ("SIRET" if col_id else None)
     col_tva = find_col(["Numéro TVA", "Numero TVA", "TVA"])
     col_adresse = find_col(["Adresse"])
     col_cp = find_col(["Code postal"])
     col_ville = find_col(["Ville"])
     col_pays = find_col(["Pays"])
 
-    missing = [n for n, v in [("Nom", col_nom), ("SIRET", col_siret), ("TVA", col_tva),
+    missing = [n for n, v in [("Nom", col_nom), ("SIRET/SIREN", col_id), ("TVA", col_tva),
                                ("Adresse", col_adresse), ("Code postal", col_cp),
                                ("Ville", col_ville), ("Pays", col_pays)] if v is None]
     if missing:
-        print(f"ERREUR: colonnes introuvables dans le CSV: {missing}", file=sys.stderr)
-        print(f"Colonnes detectees: {fieldnames}", file=sys.stderr)
+        print(warn(f"ALERTE: colonnes introuvables dans le CSV: {missing}"), file=sys.stderr)
+        print(warn(f"Colonnes detectees: {fieldnames}"), file=sys.stderr)
+        print(warn("Astuce: la colonne d'identifiant doit s'appeler 'SIRET' ou 'SIREN'."), file=sys.stderr)
         sys.exit(1)
+
+    print(ok(f"Colonne d'identifiant detectee : {col_id}"))
+
+    def id_value_for(info):
+        """Retourne la valeur a ecrire dans la colonne identifiant selon son
+        type reel : le SIREN (9 chiffres) si la colonne s'appelle 'SIREN',
+        sinon le SIRET (14 chiffres)."""
+        if id_kind == "SIREN":
+            return info.get("siren") or ""
+        return info.get("siret") or ""
 
     # --- Reprise : on recharge ce qui a deja ete traite lors d'un run precedent ---
     already_done_keys = set()
@@ -507,7 +565,7 @@ def main():
 
         # --- Ligne deja complete dans le fichier d'entree (ex: corrigee a la main,
         # ou export Pennylane mis a jour entre deux runs) : on ne reinterroge rien. ---
-        if row.get(col_siret) and row.get(col_adresse) and row.get(col_cp) and row.get(col_ville):
+        if row.get(col_id) and row.get(col_adresse) and row.get(col_cp) and row.get(col_ville):
             rows_traites.append(row)
             stats["deja_traites_reprise"] += 1
             continue
@@ -529,8 +587,8 @@ def main():
 
             if info and info["siret"]:
                 tva_reconstruite = compute_french_vat_from_siren(info["siren"])
-                if not row.get(col_siret):
-                    row[col_siret] = info["siret"]
+                if not row.get(col_id):
+                    row[col_id] = id_value_for(info)
                 if not row.get(col_adresse):
                     row[col_adresse] = info["adresse"]
                 if not row.get(col_cp):
@@ -577,8 +635,8 @@ def main():
             row[col_pays] = "FR"
 
             if info and info["siret"]:
-                if not row.get(col_siret):
-                    row[col_siret] = info["siret"]
+                if not row.get(col_id):
+                    row[col_id] = id_value_for(info)
                 if not row.get(col_adresse):
                     row[col_adresse] = info["adresse"]
                 if not row.get(col_cp):
@@ -704,13 +762,30 @@ def main():
                 f.write(f"  - {x}\n")
 
     print("\n" + "=" * 40)
-    print("Termine.")
+    print(ok(paint("Termine.", "bold")))
+    # Reussites en vert, categories "a traiter" en orange, reste neutre.
+    success_keys = {"completed_fr", "completed_vies", "completed_by_name", "deja_traites_reprise"}
+    alert_keys = {"diffusion_partielle_fr", "vies_sans_detail", "not_found_fr",
+                  "no_vat_no_match", "unchanged_no_vat"}
     for k, v in stats.items():
-        print(f"  {k}: {v}")
-    print(f"\nFichier des lignes completees   : {out_traites_path}  ({len(rows_traites)} lignes)")
-    print(f"Fichier des lignes a traiter    : {out_a_traiter_path}  ({len(rows_a_traiter)} lignes)")
+        line = f"  {k}: {v}"
+        if v and k in success_keys:
+            print(ok(line))
+        elif v and k in alert_keys:
+            print(warn(line))
+        else:
+            print(line)
+    print(ok(f"\nFichier des lignes completees   : {out_traites_path}  ({len(rows_traites)} lignes)"))
+    print(warn(f"Fichier des lignes a traiter    : {out_a_traiter_path}  ({len(rows_a_traiter)} lignes)"))
     print(f"Rapport detaille                : {report_path}")
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print(warn("\nInterrompu par l'utilisateur."), file=sys.stderr)
+        sys.exit(130)
+    except Exception as e:  # noqa: BLE001 - message clair en rouge pour l'utilisateur
+        print(err(f"\nERREUR INATTENDUE : {e}"), file=sys.stderr)
+        sys.exit(1)

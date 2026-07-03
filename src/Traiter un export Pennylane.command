@@ -108,15 +108,16 @@ while true; do
   fi
 
   if [ -d "$RAW" ]; then
-    # Un dossier a ete glisse : on traite chaque export fournisseurs trouve.
+    # Un dossier a ete glisse : on traite chaque export fournisseurs OU clients trouve.
     found=0
     while IFS= read -r f; do
       found=1
       process_file "$f"
-    done < <(find "$RAW" -maxdepth 1 -type f -iname "*fournisseur*.csv" \
+    done < <(find "$RAW" -maxdepth 1 -type f \
+               \( -iname "*fournisseur*.csv" -o -iname "*client*.csv" \) \
                ! -iname "*.traites.csv" ! -iname "*.a_traiter.csv")
     if [ "$found" -eq 0 ]; then
-      echo "  [!] Aucun export fournisseurs (*.csv) trouve dans ce dossier."
+      echo "  [!] Aucun export fournisseurs/clients (*.csv) trouve dans ce dossier."
     fi
   elif [ -f "$RAW" ]; then
     process_file "$RAW"
