@@ -91,13 +91,15 @@ double-cliquer. Aucune ligne de commande.
    à côté un sous-dossier par client avec ses exports Pennylane.
 3. Double-cliquer sur **`Traiter un export Pennylane.command`**. Au premier
    lancement, macOS bloque les fichiers téléchargés ; il faut l'autoriser **une
-   seule fois**, en trois écrans :
-   1. la fenêtre d'alerte apparaît → cliquer **« Annuler »** (jamais
-      « corbeille ») ;
+   seule fois**, en **quatre écrans** qui s'enchaînent :
+   1. **« Élément … non ouvert »** → cliquer **« Terminé »** (surtout **pas** le
+      bouton bleu « Placer dans la corbeille ») ;
    2. ouvrir **menu  ▸ Réglages Système ▸ Confidentialité et sécurité**,
       descendre tout en bas, cliquer **« Ouvrir quand même »** ;
-   3. à la dernière confirmation, cliquer **« Ouvrir »**. C'est mémorisé : les
-      fois suivantes, un simple double-clic suffit.
+   3. **authentification** (l'étape facile à rater) : **Touch ID**, ou cliquer
+      **« Utiliser le mot de passe… »** et saisir le mot de passe de session ;
+   4. **« Ouvrir … ? »** → cliquer **« Ouvrir quand même »**. C'est mémorisé :
+      les fois suivantes, un simple double-clic suffit.
 4. Si une fenêtre macOS propose d'**installer Python**, acceptez (un clic),
    attendez la fin, puis relancez le lanceur. Python est simplement le **moteur
    gratuit et standard qui exécute le script** (édité par une fondation à but non
