@@ -158,15 +158,19 @@ DEFAULT_GENERIC_NAMES = [
 def derive_output_base(input_csv: str) -> str:
     """Derive le nom de base des fichiers de sortie a partir du fichier
     d'entree, dans le MEME dossier que celui-ci. Retire le prefixe
-    'PENNYLANE_' et le suffixe '_Export_des_fournisseurs' (ou variantes)
-    s'ils sont presents, pour obtenir un nom de sortie plus court et lisible."""
-    import os
+    'PENNYLANE_' et le suffixe '_Export_des_fournisseurs' / '_Export_des_clients'
+    (ou variantes) s'ils sont presents, pour obtenir un nom de sortie plus court
+    et lisible, en conservant le type (fournisseurs ou clients)."""
     folder, filename = os.path.split(input_csv)
     name, _ext = os.path.splitext(filename)
     name = re.sub(r"^PENNYLANE_", "", name, flags=re.IGNORECASE)
-    name = re.sub(r"_Export[_ ]?des[_ ]?fournisseurs$", "", name, flags=re.IGNORECASE)
+    m = re.search(r"_Export[_ ]?des[_ ]?(fournisseurs|clients)$", name, flags=re.IGNORECASE)
+    kind = m.group(1).lower() if m else None
+    name = re.sub(r"_Export[_ ]?des[_ ]?(fournisseurs|clients)$", "", name, flags=re.IGNORECASE)
     name = re.sub(r"_export$", "", name, flags=re.IGNORECASE)
-    if not name.lower().endswith("fournisseurs"):
+    if kind:
+        name = f"{name}_{kind}"
+    elif not name.lower().endswith(("fournisseurs", "clients")):
         name = f"{name}_fournisseurs"
     return os.path.join(folder, name) if folder else name
 

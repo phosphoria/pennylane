@@ -211,15 +211,41 @@ le lien de chaque candidat, pour trancher à la main en quelques secondes.
 .
 ├── README.md          # utilisation
 ├── CONCEPTION.md      # choix techniques, dépendances, contraintes, compromis
+├── Makefile           # raccourcis : make test, make zip, make run…
 ├── .github/
 │   └── workflows/
-│       └── release.yml  # construit le zip de release (2 fichiers) sur tag
+│       ├── release.yml  # construit le zip de release (2 fichiers) sur tag
+│       └── tests.yml    # lance les tests unitaires (push / pull request)
 ├── docs/
 │   └── index.html     # page publique (GitHub Pages), orientée utilisateur final
+├── tests/
+│   └── test_pennylane_enrich.py  # tests unitaires (bibliothèque standard)
 └── src/
     ├── pennylane_enrich.py                  # le script principal
     └── Traiter un export Pennylane.command  # lanceur double-cliquable (macOS)
 ```
+
+### Lancer les tests
+
+Aucune dépendance à installer (uniquement `unittest` de la bibliothèque
+standard). Depuis la racine du dépôt :
+
+```bash
+make test          # raccourci
+# ou, sans make :
+python3 -m unittest discover -s tests -v
+```
+
+Autres raccourcis (`make help` pour la liste) : `make zip` construit le zip de
+distribution, `make run CSV=chemin.csv` traite un export, `make clean` supprime
+les caches.
+
+Les tests couvrent les fonctions pures (numéros de TVA, clé SIREN, normalisation
+de noms, nommage des sorties), les appels aux API **simulés** (aucune requête
+réseau réelle), le pipeline complet (flexibilité SIRET/SIREN, libellés
+génériques, reprise, VIES, rapport), les couleurs du terminal, et le lanceur
+`.command` (syntaxe + comportement). Ils s'exécutent aussi automatiquement en
+CI via `.github/workflows/tests.yml`.
 
 ### Publier une nouvelle version (Release)
 

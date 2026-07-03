@@ -1,0 +1,21 @@
+name: Tests
+
+# Lance la suite de tests unitaires a chaque push et pull request.
+on:
+  push:
+  pull_request:
+
+jobs:
+  unittest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Recuperer le depot
+        uses: actions/checkout@v4
+
+      - name: Installer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Lancer les tests (script + lanceur, sans dependance)
+        run: make test
