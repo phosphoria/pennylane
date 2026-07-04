@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Version à télécharger — Pennylane (Mac / Windows, Europe incluse)</title>
+<meta name="description" content="Outil simple pour compléter automatiquement les coordonnées manquantes (SIRET, adresse, ville…) des fournisseurs et clients exportés depuis Pennylane.">
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#ffffff; --ink:#1d2530; --muted:#5b6675;
+    --brand:#2f6df6; --brand-dark:#1f51c4; --line:#e6e9ef; --ok:#1f9d6b;
+    --radius:16px; --shadow:0 1px 2px rgba(16,24,40,.05),0 8px 24px rgba(16,24,40,.06);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:820px; margin:0 auto; padding:0 20px}
+  a{color:var(--brand); text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  header.hero{
+    background:linear-gradient(160deg,#eaf0ff 0%,#f6f7f9 70%);
+    border-bottom:1px solid var(--line); padding:64px 0 48px;
+  }
+  .badge{
+    display:inline-block; font-size:13px; font-weight:600; color:var(--brand-dark);
+    background:#e3ebff; border:1px solid #cfddff; padding:4px 12px; border-radius:999px;
+    margin-bottom:18px;
+  }
+  h1{font-size:34px; line-height:1.2; margin:0 0 14px}
+  .lead{font-size:18px; color:var(--muted); margin:0 0 28px; max-width:620px}
+  .cta{
+    display:inline-flex; align-items:center; gap:9px; background:var(--brand); color:#fff;
+    font-weight:600; padding:13px 22px; border-radius:12px; box-shadow:var(--shadow);
+    transition:background .15s ease;
+  }
+  .cta:hover{background:var(--brand-dark); text-decoration:none}
+  .cta.secondary{background:#fff; color:var(--ink); border:1px solid var(--line); margin-left:10px}
+  .cta.secondary:hover{background:#fafbfc}
+
+  /* barre flottante : les deux boutons toujours visibles en haut a droite */
+  .floatbar{
+    position:fixed; top:14px; right:16px; z-index:100; display:flex; gap:10px;
+  }
+  .floatbar .cta{padding:10px 16px; font-size:14.5px; margin:0; box-shadow:0 4px 14px rgba(16,24,40,.18)}
+  @media (max-width:560px){
+    .floatbar{top:10px; right:10px; gap:8px}
+    .floatbar .cta{padding:9px 12px; font-size:13px}
+  }
+
+  /* limites */
+  ul.limits{list-style:none; padding:0; margin:0; display:grid; gap:12px}
+  ul.limits li{
+    background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:16px 18px 16px 46px; position:relative; box-shadow:var(--shadow); font-size:15px;
+  }
+  ul.limits li::before{
+    content:"!"; position:absolute; left:16px; top:15px; width:20px; height:20px;
+    background:#fdeccd; color:#9a6a14; border-radius:6px; font-weight:800; font-size:13px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  ul.limits strong{font-weight:700}
+
+  /* Sections "Objectif" et "Limites" : pas de cadre blanc (cartes a plat) */
+  #objectif .card{background:transparent; border:none; box-shadow:none; padding:0}
+  #limites ul.limits li{background:transparent; border:none; box-shadow:none; padding:4px 0 4px 40px}
+  #limites ul.limits li::before{left:6px; top:6px}
+
+  section{padding:46px 0}
+  section + section{border-top:1px solid var(--line)}
+  h2{font-size:23px; margin:0 0 8px}
+  .sub{color:var(--muted); margin:0 0 26px}
+
+  /* fil d'Ariane */
+  .crumbs{display:flex; flex-wrap:wrap; align-items:center; gap:8px;
+    font-size:13.5px; margin:0 0 22px}
+  .crumbs a{color:var(--muted); text-decoration:none}
+  .crumbs a:hover{color:var(--brand)}
+  .crumbs a.active{color:var(--ink); font-weight:700}
+  .crumbs .sep{color:#c2c9d4}
+
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+  @media (max-width:640px){.grid{grid-template-columns:1fr}}
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:20px 22px; box-shadow:var(--shadow);
+  }
+  .card h3{margin:0 0 6px; font-size:16px}
+  .card p{margin:0; color:var(--muted); font-size:15px}
+
+  ol.steps{counter-reset:s; list-style:none; padding:0; margin:0; display:grid; gap:14px}
+  ol.steps li{
+    position:relative; background:var(--card); border:1px solid var(--line);
+    border-radius:var(--radius); padding:18px 20px 18px 64px; box-shadow:var(--shadow);
+  }
+  ol.steps li::before{
+    counter-increment:s; content:counter(s);
+    position:absolute; left:18px; top:16px; width:32px; height:32px; border-radius:50%;
+    background:var(--brand); color:#fff; font-weight:700; display:flex;
+    align-items:center; justify-content:center; font-size:15px;
+  }
+  ol.steps strong{display:block; margin-bottom:2px}
+  ol.steps span{color:var(--muted); font-size:15px}
+  kbd{
+    background:#eef1f6; border:1px solid #dce1ea; border-bottom-width:2px;
+    border-radius:6px; padding:1px 7px; font-size:13px; font-family:inherit; font-weight:600;
+  }
+  .note{
+    margin-top:22px; background:#fff8ec; border:1px solid #f3e2bd; border-radius:12px;
+    padding:14px 16px; font-size:14.5px; color:#705a25;
+  }
+  .figure{
+    margin-top:12px; background:#eef1f6; border:1px solid var(--line);
+    border-radius:12px; padding:16px; text-align:center;
+  }
+  .figure svg{width:100%; max-width:380px; height:auto; display:block; margin:0 auto}
+  .figure figcaption{margin-top:10px; font-size:13.5px; color:var(--muted); line-height:1.5}
+  .figure .tag{display:inline-block; background:#dfe7ff; color:var(--brand-dark);
+    border-radius:6px; padding:1px 8px; font-weight:700; font-size:12.5px}
+
+  /* contact */
+  .contacts{display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:stretch}
+  @media (max-width:640px){.contacts{grid-template-columns:1fr}}
+  .contact{
+    background:linear-gradient(160deg,#101826 0%,#1b2740 100%); color:#eef2f8;
+    border-radius:var(--radius); padding:26px; box-shadow:var(--shadow);
+    display:flex; flex-direction:column; gap:18px;
+  }
+  .contact .head{display:flex; align-items:center; gap:16px}
+  .avatar{
+    width:64px; height:64px; border-radius:50%; flex:0 0 auto; position:relative; overflow:hidden;
+    background:linear-gradient(135deg,#3a7bff,#9d6bff); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-weight:700; font-size:24px;
+  }
+  .avatar img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
+  .contact .who{flex:1 1 auto; min-width:0}
+  .contact .who .name{font-size:20px; font-weight:700}
+  .contact .who .role{color:#aab6cc; font-size:15px}
+  .contact .links{display:flex; gap:10px; flex-wrap:wrap}
+  .clink{
+    display:inline-flex; align-items:center; gap:7px; background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.16); color:#eef2f8; padding:9px 14px;
+    border-radius:10px; font-weight:600; font-size:14.5px;
+  }
+  .clink:hover{background:rgba(255,255,255,.16); text-decoration:none}
+  .clink svg{width:16px; height:16px; fill:currentColor}
+  .clink img{height:16px; width:auto; display:block}
+
+  footer{padding:34px 0 60px; color:var(--muted); font-size:13.5px; text-align:center}
+</style>
+</head>
+<body>
+
+<div class="floatbar">
+  <a class="cta" href="https://github.com/phosphoria/pennylane/releases/latest/download/pennylane-outil.zip">⬇ Télécharger</a>
+  <a class="cta secondary" href="https://github.com/phosphoria/pennylane">GitHub</a>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <h1>Version à télécharger — fournisseurs français <i>et</i> européens</h1>
+    <p class="lead">La version installable (Mac / Windows) ajoute les adresses
+      <b>européennes</b> (via VIES) que l'outil en ligne ne peut pas récupérer, en plus
+      de tout ce que fait la version en ligne.</p>
+    <div style="margin-top:26px">
+      <a class="cta" href="index.html">✨ Utiliser l'outil en ligne (recommandé)</a>
+      <a class="cta secondary" href="#installation">Télécharger &amp; installer</a>
+    </div>
+    <p class="lead" style="margin-top:14px;font-size:14.5px">
+      <b>En ligne</b> (le plus simple) : entreprises <b>françaises</b>, rien à installer, données 100&nbsp;% locales.
+      &nbsp;·&nbsp; <b>À télécharger</b> (cette page) : ajoute en plus les adresses <b>européennes</b> via VIES.
+    </p>
+  </div>
+</header>
+
+<section id="objectif">
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Navigation">
+      <a href="#objectif" class="active">Objectif</a><span class="sep">›</span>
+      <a href="#installation">Installation</a><span class="sep">›</span>
+      <a href="#utilisation">Utilisation</a><span class="sep">›</span>
+      <a href="#limites">Limites</a><span class="sep">›</span>
+      <a href="#aide">Aide</a>
+    </nav>
+    <h2>À quoi ça sert</h2>
+    <p class="sub">Pennylane permet d'exporter les fiches incomplètes en CSV, puis de réimporter le fichier corrigé. L'outil automatise l'étape intermédiaire.</p>
+    <div class="grid">
+      <div class="card"><h3>🇫🇷 Fournisseurs français</h3><p>SIRET, adresse, code postal et ville récupérés via la base officielle Sirene/INSEE.</p></div>
+      <div class="card"><h3>🇪🇺 Fournisseurs européens</h3><p>Nom et adresse via VIES (Commission européenne), quand le pays les transmet.</p></div>
+      <div class="card"><h3>🔎 Sans numéro de TVA</h3><p>Recherche prudente par nom : complété seulement en cas de correspondance unique et certaine.</p></div>
+      <div class="card"><h3>✅ Prêt à réimporter</h3><p>Un fichier « traités » réimportable dans Pennylane + un fichier « à traiter » + un rapport.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="installation">
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Navigation">
+      <a href="#objectif">Objectif</a><span class="sep">›</span>
+      <a href="#installation" class="active">Installation</a><span class="sep">›</span>
+      <a href="#utilisation">Utilisation</a><span class="sep">›</span>
+      <a href="#limites">Limites</a><span class="sep">›</span>
+      <a href="#aide">Aide</a>
+    </nav>
+    <h2>Installation</h2>
+    <p class="sub">Pas de ligne de commande. À faire une seule fois — suivez les images.</p>
+    <div class="note" style="margin-top:0;margin-bottom:20px">✨ Le plus simple ne demande <b>aucune installation</b> : l'<a href="index.html">outil en ligne</a> (entreprises françaises). Cette section décrit la <b>version à télécharger</b>, qui ajoute en plus les adresses européennes (VIES).</div>
+    <p class="osnote">🍎 <b>Sur macOS</b> : suivez les étapes ci-dessous. &nbsp;·&nbsp; 🪟 <b>Sur Windows</b> : voir <a href="#windows">plus bas</a>.</p>
+    <ol class="steps">
+
+      <li><strong>Télécharger l'outil</strong>
+        <span>Cliquez sur le bouton <strong>« ⬇ Télécharger »</strong> en haut à droite de cette page (alternative : la <a href="https://github.com/phosphoria/pennylane/releases/latest" target="_blank" rel="noopener">dernière version sur GitHub</a>).</span>
+        <div class="figure">
+          <svg viewBox="0 0 380 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Bouton Télécharger en haut à droite">
+            <rect x="6" y="10" width="368" height="100" rx="10" fill="#fff" stroke="#dfe3ea"/>
+            <rect x="232" y="22" width="92" height="30" rx="9" fill="#2f6df6"/>
+            <text x="278" y="42" text-anchor="middle" font-size="13" font-weight="700" fill="#fff" font-family="sans-serif">⬇ Télécharger</text>
+            <rect x="20" y="26" width="120" height="9" rx="4" fill="#e3e7ee"/>
+            <rect x="20" y="44" width="80" height="9" rx="4" fill="#eef1f6"/>
+            <!-- curseur -->
+            <path d="M300 70 l0 28 l7 -7 l5 11 l5 -2 l-5 -11 l10 0 z" fill="#1d2530" stroke="#fff" stroke-width="1.5"/>
+          </svg>
+          <figcaption>Le fichier <b>pennylane-outil.zip</b> se télécharge.</figcaption>
+        </div>
+      </li>
+
+      <li><strong>Décompresser &amp; ranger</strong>
+        <span>Double-cliquez sur le fichier <kbd>.zip</kbd> téléchargé. Vous obtenez un dossier avec <b>deux fichiers</b> ; gardez-les ensemble. <b>Important :</b> déplacez ce dossier dans votre <b>dossier personnel</b> (l'icône maison à votre nom dans le Finder) — évitez de le laisser dans <i>Téléchargements</i>, <i>Bureau</i> ou <i>Documents</i>, que macOS protège (sinon l'outil ne pourra pas lire les fichiers).</span>
+        <div class="figure">
+          <svg viewBox="0 0 380 130" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Le zip se décompresse en un dossier de deux fichiers">
+            <!-- zip -->
+            <rect x="24" y="35" width="60" height="62" rx="8" fill="#fff" stroke="#cfd5de"/>
+            <rect x="50" y="35" width="8" height="40" fill="#cfd5de"/>
+            <text x="54" y="112" text-anchor="middle" font-size="11" fill="#5b6675" font-family="sans-serif">.zip</text>
+            <!-- fleche -->
+            <path d="M104 66 h44" stroke="#9aa4b2" stroke-width="3" fill="none"/>
+            <path d="M148 66 l-10 -6 v12 z" fill="#9aa4b2"/>
+            <!-- dossier -->
+            <path d="M176 44 h40 l8 9 h84 a8 8 0 0 1 8 8 v44 a8 8 0 0 1 -8 8 h-132 a8 8 0 0 1 -8 -8 v-53 a8 8 0 0 1 8 -8 z" fill="#bcd3ff" stroke="#8fb4f3"/>
+            <rect x="196" y="70" width="120" height="16" rx="4" fill="#fff" stroke="#d8dde5"/>
+            <text x="206" y="82" font-size="10" fill="#5b6675" font-family="sans-serif">pennylane_enrich.py</text>
+            <rect x="196" y="90" width="120" height="16" rx="4" fill="#fff" stroke="#d8dde5"/>
+            <text x="206" y="102" font-size="10" fill="#5b6675" font-family="sans-serif">Traiter un export…command</text>
+          </svg>
+          <figcaption>Deux fichiers : le moteur et le bouton à double-cliquer.</figcaption>
+        </div>
+      </li>
+
+      <li><strong>Autoriser l'outil (une seule fois)</strong>
+        <span>Double-cliquez sur <kbd>Traiter un export Pennylane.command</kbd>. macOS bloque par sécurité tout fichier venu d'internet : il faut l'autoriser une fois, en <b>4 écrans qui s'enchaînent</b>. Suivez exactement les boutons indiqués ci-dessous.</span>
+
+        <div class="figure">
+          <svg viewBox="0 0 380 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Écran 1 : élément non ouvert, cliquez Terminé">
+            <rect x="64" y="10" width="252" height="232" rx="16" fill="#fff" stroke="#d8dde5"/>
+            <path d="M190 26 L209 60 L171 60 Z" fill="#febc2e" stroke="#e0a01c" stroke-width="1.5" stroke-linejoin="round"/>
+            <rect x="188.5" y="38" width="3" height="12" rx="1.5" fill="#6b5610"/><circle cx="190" cy="55" r="1.8" fill="#6b5610"/>
+            <text x="190" y="82" text-anchor="middle" font-size="10.5" fill="#1d2530" font-weight="700" font-family="sans-serif">Élément « Traiter un export</text>
+            <text x="190" y="96" text-anchor="middle" font-size="10.5" fill="#1d2530" font-weight="700" font-family="sans-serif">Pennylane.command » non ouvert</text>
+            <text x="190" y="118" text-anchor="middle" font-size="9" fill="#5b6675" font-family="sans-serif">Apple n'a pas pu confirmer que cet élément ne</text>
+            <text x="190" y="130" text-anchor="middle" font-size="9" fill="#5b6675" font-family="sans-serif">contenait pas de logiciel malveillant.</text>
+            <rect x="86" y="150" width="208" height="30" rx="8" fill="#2f6df6"/>
+            <text x="190" y="169" text-anchor="middle" font-size="11" fill="#fff" font-weight="600" font-family="sans-serif">Placer dans la corbeille</text>
+            <rect x="86" y="188" width="208" height="30" rx="8" fill="#f0f1f4" stroke="#2f6df6" stroke-width="2"/>
+            <text x="190" y="207" text-anchor="middle" font-size="11" fill="#1d2530" font-weight="700" font-family="sans-serif">Terminé</text>
+            <path d="M330 203 l-14 0 m0 0 l7 -5 m-7 5 l7 5" stroke="#2f6df6" stroke-width="2" fill="none"/>
+          </svg>
+          <figcaption><span class="tag">Écran 1</span> Cliquez sur <b>« Terminé »</b>. ⚠️ Ne cliquez <b>pas</b> le bouton bleu « Placer dans la corbeille ».</figcaption>
+        </div>
+
+        <div class="figure">
+          <svg viewBox="0 0 380 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Écran 2 : Réglages Système, Ouvrir quand même">
+            <rect x="26" y="12" width="328" height="176" rx="12" fill="#fff" stroke="#d8dde5"/>
+            <circle cx="44" cy="28" r="4.5" fill="#ff5f57"/><circle cx="60" cy="28" r="4.5" fill="#febc2e"/><circle cx="76" cy="28" r="4.5" fill="#28c840"/>
+            <text x="200" y="32" text-anchor="middle" font-size="11" fill="#5b6675" font-weight="700" font-family="sans-serif">Confidentialité et sécurité</text>
+            <line x1="26" y1="44" x2="354" y2="44" stroke="#eef1f6"/>
+            <text x="46" y="86" font-size="11" fill="#1d2530" font-family="sans-serif">« Traiter un export Pennylane.command » a été</text>
+            <text x="46" y="101" font-size="11" fill="#1d2530" font-family="sans-serif">bloqué pour protéger votre Mac.</text>
+            <rect x="206" y="124" width="132" height="32" rx="8" fill="#eef1f6" stroke="#2f6df6" stroke-width="2"/>
+            <text x="272" y="145" text-anchor="middle" font-size="12" fill="#1d2530" font-weight="700" font-family="sans-serif">Ouvrir quand même</text>
+            <path d="M272 174 l-7 -9 h14 z" fill="#2f6df6"/>
+          </svg>
+          <figcaption><span class="tag">Écran 2</span> Ouvrez <b>menu  ▸ Réglages Système ▸ Confidentialité et sécurité</b>, descendez tout en bas, puis cliquez <b>« Ouvrir quand même »</b>.</figcaption>
+        </div>
+
+        <div class="figure">
+          <svg viewBox="0 0 380 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Écran 3 : authentification Touch ID ou mot de passe">
+            <rect x="64" y="10" width="252" height="222" rx="16" fill="#fff" stroke="#d8dde5"/>
+            <circle cx="190" cy="42" r="18" fill="#fbe6f0" stroke="#e79cc2"/>
+            <path d="M182 42 a8 8 0 0 1 16 0 M185 42 a5 5 0 0 1 10 0 M179 46 a11 11 0 0 1 22 -1" stroke="#d24b8f" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+            <circle cx="203" cy="53" r="8" fill="#2f6df6"/><path d="M199 53 h8 M203 49 v8" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
+            <text x="190" y="80" text-anchor="middle" font-size="11" fill="#1d2530" font-weight="700" font-family="sans-serif">Confidentialité et sécurité</text>
+            <text x="190" y="100" text-anchor="middle" font-size="9" fill="#5b6675" font-family="sans-serif">Vous tentez d'ouvrir une app. Authentifiez-vous</text>
+            <text x="190" y="112" text-anchor="middle" font-size="9" fill="#5b6675" font-family="sans-serif">via Touch ID, ou saisissez le mot de passe d'un</text>
+            <text x="190" y="124" text-anchor="middle" font-size="9" fill="#5b6675" font-family="sans-serif">administrateur pour autoriser cette opération.</text>
+            <rect x="86" y="150" width="208" height="30" rx="8" fill="#2f6df6" stroke="#1f51c4" stroke-width="2"/>
+            <text x="190" y="169" text-anchor="middle" font-size="11" fill="#fff" font-weight="700" font-family="sans-serif">Utiliser le mot de passe…</text>
+            <rect x="86" y="188" width="208" height="30" rx="8" fill="#f0f1f4" stroke="#d8dde5"/>
+            <text x="190" y="207" text-anchor="middle" font-size="11" fill="#777" font-family="sans-serif">Annuler</text>
+          </svg>
+          <figcaption><span class="tag">Écran 3</span> <b>L'étape clé</b> : posez le doigt sur <b>Touch ID</b>, ou cliquez <b>« Utiliser le mot de passe… »</b> et saisissez le mot de passe de votre session Mac.</figcaption>
+        </div>
+
+        <div class="figure">
+          <svg viewBox="0 0 380 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Écran 4 : Ouvrir, cliquez Ouvrir quand même">
+            <rect x="64" y="10" width="252" height="242" rx="16" fill="#fff" stroke="#d8dde5"/>
+            <path d="M190 26 L209 60 L171 60 Z" fill="#febc2e" stroke="#e0a01c" stroke-width="1.5" stroke-linejoin="round"/>
+            <rect x="188.5" y="38" width="3" height="12" rx="1.5" fill="#6b5610"/><circle cx="190" cy="55" r="1.8" fill="#6b5610"/>
+            <text x="190" y="82" text-anchor="middle" font-size="10.5" fill="#1d2530" font-weight="700" font-family="sans-serif">Ouvrir « Traiter un export</text>
+            <text x="190" y="96" text-anchor="middle" font-size="10.5" fill="#1d2530" font-weight="700" font-family="sans-serif">Pennylane.command » ?</text>
+            <text x="190" y="118" text-anchor="middle" font-size="9" fill="#5b6675" font-family="sans-serif">Ne l'ouvrez que si vous avez la certitude qu'il</text>
+            <text x="190" y="130" text-anchor="middle" font-size="9" fill="#5b6675" font-family="sans-serif">provient d'une source de confiance.</text>
+            <rect x="86" y="150" width="208" height="28" rx="8" fill="#f0f1f4" stroke="#d8dde5"/>
+            <text x="190" y="168" text-anchor="middle" font-size="10.5" fill="#777" font-family="sans-serif">Placer dans la corbeille</text>
+            <rect x="86" y="184" width="208" height="28" rx="8" fill="#f0f1f4" stroke="#2f6df6" stroke-width="2"/>
+            <text x="190" y="202" text-anchor="middle" font-size="11" fill="#1d2530" font-weight="700" font-family="sans-serif">Ouvrir quand même</text>
+            <rect x="86" y="218" width="208" height="28" rx="8" fill="#f0f1f4" stroke="#d8dde5"/>
+            <text x="190" y="236" text-anchor="middle" font-size="10.5" fill="#777" font-family="sans-serif">Terminé</text>
+            <path d="M330 198 l-14 0 m0 0 l7 -5 m-7 5 l7 5" stroke="#2f6df6" stroke-width="2" fill="none"/>
+          </svg>
+          <figcaption><span class="tag">Écran 4</span> Cliquez <b>« Ouvrir quand même »</b>. C'est mémorisé — ensuite, un simple double-clic suffit.</figcaption>
+        </div>
+      </li>
+
+      <li><strong>Python (si macOS le demande)</strong>
+        <span>Python est simplement le <strong>moteur gratuit et standard qui exécute le script</strong> (édité par une fondation à but non lucratif, utilisé partout dans le monde) — rien d'inquiétant. Si une fenêtre propose de l'installer, cliquez <b>« Installer »</b>, patientez, puis relancez l'outil.</span>
+      </li>
+    </ol>
+    <div class="note">💡 macOS uniquement. Le blocage de sécurité est normal pour tout fichier téléchargé : cette suite de 4 écrans ne se fait <b>qu'une seule fois</b>. Ensuite, un simple double-clic ouvre l'outil.</div>
+  </div>
+</section>
+
+<section id="utilisation">
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Navigation">
+      <a href="#objectif">Objectif</a><span class="sep">›</span>
+      <a href="#installation">Installation</a><span class="sep">›</span>
+      <a href="#utilisation" class="active">Utilisation</a><span class="sep">›</span>
+      <a href="#limites">Limites</a><span class="sep">›</span>
+      <a href="#aide">Aide</a>
+    </nav>
+    <h2>Utilisation au quotidien</h2>
+    <p class="sub">Une fois la fenêtre ouverte, tout se fait au glisser-déposer.</p>
+    <ol class="steps">
+      <li><strong>Exporter depuis Pennylane</strong><span>Récupérez l'export CSV « fournisseurs » (ou « clients ») à compléter.</span></li>
+      <li><strong>Glisser-déposer</strong><span>Glissez ce fichier CSV (ou le dossier d'un client) dans la fenêtre, puis appuyez sur <kbd>Entrée</kbd>.</span></li>
+      <li><strong>Récupérer les résultats</strong><span>Trois fichiers sont créés à côté de l'original : <kbd>…traites.csv</kbd> (à réimporter), <kbd>…a_traiter.csv</kbd> (à finir à la main) et <kbd>…report.txt</kbd> (le détail, avec liens de vérification).</span></li>
+      <li><strong>Réimporter</strong><span>Importez le fichier <kbd>…traites.csv</kbd> dans Pennylane.</span></li>
+    </ol>
+  </div>
+</section>
+
+<section id="limites">
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Navigation">
+      <a href="#objectif">Objectif</a><span class="sep">›</span>
+      <a href="#installation">Installation</a><span class="sep">›</span>
+      <a href="#utilisation">Utilisation</a><span class="sep">›</span>
+      <a href="#limites" class="active">Limites</a><span class="sep">›</span>
+      <a href="#aide">Aide</a>
+    </nav>
+    <h2>Limites connues</h2>
+    <p class="sub">Quelques cas que l'outil ne peut pas compléter tout seul — à finir à la main.</p>
+    <ul class="limits">
+      <li><strong>Certains pays de l'UE ne communiquent pas l'adresse</strong> (Allemagne, Espagne, Pays-Bas, Italie…). Le pays est corrigé, mais l'adresse reste à saisir.</li>
+      <li><strong>Fournisseurs hors Union européenne</strong> (Royaume-Uni, États-Unis…) : seul le pays est renseigné, pas l'adresse.</li>
+      <li><strong>Entreprises individuelles « protégées »</strong> : la loi les autorise à ne pas publier leur adresse — à compléter manuellement.</li>
+      <li><strong>macOS uniquement</strong> pour le lanceur en double-clic.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="aide">
+  <div class="wrap">
+    <nav class="crumbs" aria-label="Navigation">
+      <a href="#objectif">Objectif</a><span class="sep">›</span>
+      <a href="#installation">Installation</a><span class="sep">›</span>
+      <a href="#utilisation">Utilisation</a><span class="sep">›</span>
+      <a href="#limites">Limites</a><span class="sep">›</span>
+      <a href="#aide" class="active">Aide</a>
+    </nav>
+    <h2>Une question, un besoin ?</h2>
+    <p class="sub">N'hésitez pas à nous contacter.</p>
+    <div class="contacts">
+    <div class="contact">
+      <div class="head">
+        <div class="avatar"><img src="img/vincent-clair.png" alt="Vincent Clair">VC</div>
+        <div class="who">
+          <div class="name">Vincent Clair</div>
+          <div class="role">Tech Lead / Architecte Logiciel</div>
+        </div>
+      </div>
+      <div class="links">
+        <a class="clink" href="https://www.linkedin.com/in/vincent-clair/" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.07 2.07 0 1 1 0-4.14 2.07 2.07 0 0 1 0 4.14zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>
+          LinkedIn
+        </a>
+        <a class="clink" href="https://www.malt.fr/profile/vincentclair" target="_blank" rel="noopener" aria-label="Malt">
+          <svg width="43" height="43" viewBox="0 0 43 43" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M32.1993 10.5357C29.3591 7.69551 26.3252 9.53378 24.4265 11.4325L6.49014 29.3694C4.59144 31.2679 2.60411 34.1526 5.59336 37.1414C8.58262 40.1313 11.4673 38.1436 13.3656 36.2449L31.3023 18.3084C33.201 16.4095 35.0393 13.3755 32.1993 10.5357Z" fill="white"/>
+            <path d="M15.0631 9.80108L18.8611 13.5989L22.727 9.733C22.9894 9.46992 23.2559 9.22579 23.524 8.99555C23.1192 6.95303 21.9537 5.1065 18.8593 5.1065C15.759 5.1065 14.595 6.96028 14.1923 9.00724C14.4818 9.25762 14.7706 9.5086 15.0631 9.80108Z" fill="white"/>
+            <path d="M22.7248 38.0122L18.8613 34.1486L15.0653 37.9442C14.7771 38.2326 14.4902 38.4961 14.2046 38.7436C14.6399 40.8258 15.8718 42.733 18.8597 42.733C21.8554 42.733 23.0857 40.8156 23.5182 38.7267C23.2525 38.4981 22.9866 38.2739 22.7248 38.0122Z" fill="white"/>
+            <path d="M13.4522 19.0079H6.13018C3.44549 19.0079 0 19.8537 0 23.8699C0 26.8666 1.91804 28.0972 4.00729 28.5294C4.25465 28.2438 13.4522 19.0079 13.4522 19.0079Z" fill="white"/>
+            <path d="M33.7268 19.2029C33.4951 19.4724 24.2782 28.7317 24.2782 28.7317H31.4963C34.1812 28.7317 37.6265 28.0974 37.6265 23.8699C37.6265 20.7701 35.7733 19.6054 33.7268 19.2029Z" fill="white"/>
+            <path d="M15.8513 16.6044L17.1594 15.2963L13.3638 11.5002C11.4649 9.60166 8.5806 7.61413 5.59135 10.6034C3.39937 12.7954 3.88623 14.9287 5.04889 16.6606C5.40301 16.6345 15.8513 16.6044 15.8513 16.6044Z" fill="white"/>
+            <path d="M21.8697 31.1352L20.5582 32.4467L24.4244 36.3126C26.3231 38.2115 29.3571 40.0493 32.1969 37.2095C34.316 35.0903 33.8297 32.8644 32.6582 31.0814C32.2811 31.1086 21.8697 31.1352 21.8697 31.1352Z" fill="white"/>
+          </svg>
+          Malt
+        </a>
+        <a class="clink" href="mailto:vincent.clair@inneair.com">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 4h20v16H2V4zm10 7L3.2 5.4 2 6.2 12 13l10-6.8-1.2-.8L12 11z"/></svg>
+          Email
+        </a>
+      </div>
+    </div>
+    <div class="contact">
+      <div class="head">
+        <div class="avatar"><img src="img/janice-fixari.jpeg" alt="Janice Fixari">JF</div>
+        <div class="who">
+          <div class="name">Janice Fixari</div>
+          <div class="role">Resp. Administrative &amp; Financière</div>
+        </div>
+      </div>
+      <div class="links">
+        <a class="clink" href="https://www.linkedin.com/in/janice-fixari-clair-487785ba/" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.07 2.07 0 1 1 0-4.14 2.07 2.07 0 0 1 0 4.14zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>
+          LinkedIn
+        </a>
+        <a class="clink" href="mailto:janice.fixari@phosphoria.fr">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 4h20v16H2V4zm10 7L3.2 5.4 2 6.2 12 13l10-6.8-1.2-.8L12 11z"/></svg>
+          Email
+        </a>
+      </div>
+    </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Données issues des services publics officiels et gratuits
+    <a href="https://recherche-entreprises.api.gouv.fr/">Sirene/INSEE</a> et
+    <a href="https://ec.europa.eu/taxation_customs/vies/">VIES</a>.
+    Les exports clients ne sont jamais publiés.
+  </div>
+</footer>
+
+</body>
+</html>

@@ -62,6 +62,8 @@ function loadCsv(text, name) {
 async function run() {
   if (!state.ready) return;
   const current = state;
+  // Instantané AVANT complétion (enrichRows mute les lignes) -> permet l'avant/après.
+  const before = current.rows.map(r => ({ ...r }));
   el("run").setAttribute("disabled", "true");
   el("progwrap").classList.remove("hidden");
   el("results").classList.add("hidden");
@@ -71,35 +73,33 @@ async function run() {
     el("progtxt").textContent = `${processed} / ${total} lignes traitées…`;
   });
 
-  renderResults(result, current);
+  renderResults(result, current, before);
 }
 
 /* -------------------------------- Rendu -------------------------------- */
 
-/** @param {EnrichResult} result @param {{ header: string[], rows: Row[], cols: Columns, name: string }} ctx @returns {void} */
-function renderResults(result, ctx) {
-  const { done, todo, stats, outcomes, viesBlocked } = result;
+/** @param {EnrichResult} result @param {{ header: string[], rows: Row[], cols: Columns, name: string }} ctx @param {Row[]} before @returns {void} */
+function renderResults(result, ctx, before) {
+  const { done, todo, stats, outcomes } = result;
   el("progwrap").classList.add("hidden");
 
-  const completed = stats.already + stats.completed_fr + stats.completed_name + stats.completed_vies;
+  const completed = stats.already + stats.completed_fr + stats.completed_name;
   const toVerify = stats.diffusion + stats.not_found + stats.ambiguous + stats.generic + stats.error;
   /** @type {[string, number, string][]} */
   const cards = [
     ["g", completed, "Complétées (prêtes à réimporter)"],
-    ["g", stats.completed_vies, "dont Europe (VIES)"],
-    ["o", stats.foreign, "Étrangers (pays corrigé)"],
+    ["o", stats.foreign, "Étrangers (à finir hors ligne)"],
     ["o", toVerify, "À vérifier / ignorées"]
   ];
   el("stats").innerHTML = cards
     .map(([cls, n, label]) => `<div class="stat ${cls}"><div class="n">${n}</div><small>${label}</small></div>`)
     .join("");
 
-  renderForeignNote(stats.foreign > 0, viesBlocked);
+  renderForeignNote(stats.foreign > 0);
 
-  const items = outcomes
-    .map((o, i) => describeOutcome(o, (ctx.rows[i][ctx.cols.nom] || "")))
-    .filter(html => html !== "");
-  if (items.length) { el("todoDetails").classList.remove("hidden"); el("todoList").innerHTML = items.join(""); }
+  const detail = renderDetail(outcomes, ctx, before);
+  el("todoDetails").classList.toggle("hidden", detail === "");
+  el("todoList").innerHTML = detail;
 
   el("results").classList.remove("hidden");
   el("run").removeAttribute("disabled");
@@ -112,54 +112,95 @@ function renderResults(result, ctx) {
   dlTodo.disabled = todo.length === 0;
 }
 
-/** @param {boolean} anyForeign @param {boolean} viesBlocked @returns {void} */
-function renderForeignNote(anyForeign, viesBlocked) {
+/** @param {boolean} anyForeign @returns {void} */
+function renderForeignNote(anyForeign) {
   const fn = el("foreignNote");
   if (!anyForeign) { fn.classList.add("hidden"); return; }
-  fn.innerHTML = viesBlocked
-    ? "🌍 <b>VIES n'a pas pu être contacté depuis le navigateur</b> (blocage CORS) : pour ces fournisseurs étrangers, seul le code pays a été corrigé. Pour récupérer aussi les adresses européennes, utilisez la <a href=\"index.html#installation\">version à télécharger</a>."
-    : "🌍 Certains fournisseurs étrangers restent à compléter : leur pays ne transmet pas l'adresse via VIES, ou ils sont hors UE. Le code pays a été corrigé.";
+  fn.innerHTML = "🌍 <b>Les fournisseurs étrangers ne sont pas complétés en ligne.</b> " +
+    "VIES (Commission européenne) n'autorise pas les appels depuis un navigateur (restriction CORS de leur côté) : " +
+    "seul le code pays a été corrigé. Pour récupérer les adresses européennes, utilisez la " +
+    "<a href=\"telecharger.html\">version à télécharger</a>.";
   fn.classList.remove("hidden");
 }
 
-/** @param {string} html @returns {string} */
-const todo = html => `<div class="todo">${html}</div>`;
 /** @param {string} siren @param {string} label @returns {string} */
 const verifyLink = (siren, label) =>
   `<a href="${ANNUAIRE_URL}${encodeURIComponent(siren)}" target="_blank" rel="noopener">${escapeHtml(label)}</a>`;
 
+/** Groupes du détail, dans l'ordre d'affichage. @typedef {{ title: string, emoji: string, kinds: string[], diff?: boolean }} DetailGroup */
+/** @type {DetailGroup[]} */
+const DETAIL_GROUPS = [
+  { title: "Complété par nom", emoji: "✅", kinds: ["completed_name"], diff: true },
+  { title: "Libellé générique ignoré", emoji: "🏷️", kinds: ["generic"] },
+  { title: "Étranger", emoji: "🌍", kinds: ["foreign"] },
+  { title: "Sans TVA, à vérifier", emoji: "🔎", kinds: ["ambiguous"] },
+  { title: "Introuvable / protégé", emoji: "❓", kinds: ["not_found", "diffusion"] },
+  { title: "Erreur réseau", emoji: "⚠️", kinds: ["error"] }
+];
+
 /**
- * Traduit une issue en HTML ("" si rien à signaler). Switch exhaustif sur l'union.
- * Toute donnée d'origine externe (CSV, API) est échappée avant insertion (anti-XSS).
- * @param {Outcome} o @param {string} nom @returns {string}
+ * Construit le détail des lignes, regroupé par catégorie (ordre {@link DETAIL_GROUPS}).
+ * @param {Outcome[]} outcomes @param {{ rows: Row[], cols: Columns }} ctx @param {Row[]} before @returns {string}
  */
-function describeOutcome(o, nom) {
+function renderDetail(outcomes, ctx, before) {
+  const parts = [];
+  for (const g of DETAIL_GROUPS) {
+    /** @type {string[]} */ const items = [];
+    outcomes.forEach((o, i) => {
+      if (!g.kinds.includes(o.kind)) return;
+      const nom = ctx.rows[i][ctx.cols.nom] || "";
+      const extra = g.diff ? renderBeforeAfter(before[i], ctx.rows[i], ctx.cols) : "";
+      items.push(itemLine(o, nom, extra));
+    });
+    if (items.length) {
+      parts.push(`<div class="grp"><div class="grp-h">${g.emoji} ${escapeHtml(g.title)}` +
+        ` <span class="grp-n">${items.length}</span></div>${items.join("")}</div>`);
+    }
+  }
+  return parts.join("");
+}
+
+/**
+ * Une ligne du détail (donnée externe échappée). `extra` = bloc avant/après optionnel.
+ * @param {Outcome} o @param {string} nom @param {string} extra @returns {string}
+ */
+function itemLine(o, nom, extra) {
   const b = `<b>${escapeHtml(nom)}</b>`;
+  let text;
   switch (o.kind) {
-    case "already":
-    case "completed_fr":
-    case "completed_vies":
-      return "";
-    case "completed_name":
-      return todo(`✅ ${b} complété par nom → ${verifyLink(o.siren, `vérifier (SIREN ${o.siren})`)}`);
-    case "generic":
-      return todo(`🏷️ ${b} — libellé générique ignoré`);
-    case "diffusion":
-      return todo(`🔒 ${b} (SIREN ${escapeHtml(o.siren)}) — diffusion partielle, adresse protégée`);
-    case "not_found":
-      return todo(`❓ ${b} (SIREN ${escapeHtml(o.siren)}) — introuvable dans Sirene`);
+    case "completed_name": text = `${b} → ${verifyLink(o.siren, `SIREN ${o.siren}`)}`; break;
+    case "generic": text = b; break;
+    case "foreign": text = `${b} <span class="mut">(${escapeHtml(o.cc) || "?"} — ${o.inEu ? "UE, adresse via la version à télécharger" : "hors UE"})</span>`; break;
+    case "diffusion": text = `${b} <span class="mut">(SIREN ${escapeHtml(o.siren)} — diffusion partielle)</span>`; break;
+    case "not_found": text = `${b} <span class="mut">(SIREN ${escapeHtml(o.siren)} — introuvable)</span>`; break;
+    case "error": text = `${b} <span class="mut">(${escapeHtml(o.message)})</span>`; break;
     case "ambiguous": {
       const lines = o.candidates.filter(c => c[0]).map(c =>
-        `<div class="todo" style="padding-left:18px">${escapeHtml(c[0])} — SIREN ${escapeHtml(c[1])}, ${escapeHtml(c[2])} — ${verifyLink(c[1], "voir")}</div>`).join("");
-      return todo(`🔎 ${b} — sans TVA, à vérifier :`) + lines;
+        `<div class="cand">${escapeHtml(c[0])} — SIREN ${escapeHtml(c[1])}, ${escapeHtml(c[2])} — ${verifyLink(c[1], "voir")}</div>`).join("");
+      text = `${b}${lines}`; break;
     }
-    case "foreign": {
-      const why = o.inEu ? "adresse non transmise par VIES" : "hors UE / VIES";
-      return todo(`🌍 ${b} (${escapeHtml(o.cc) || "?"}) — étranger, ${why}`);
-    }
-    case "error":
-      return todo(`⚠️ ${b} — erreur réseau (${escapeHtml(o.message)})`);
+    default: text = b;
   }
+  return `<div class="todo">${text}${extra}</div>`;
+}
+
+/**
+ * Bloc « voir avant / après » listant les champs modifiés. @param {Row} beforeRow @param {Row} afterRow @param {Columns} cols @returns {string}
+ */
+function renderBeforeAfter(beforeRow, afterRow, cols) {
+  /** @type {[string, string][]} */
+  const fields = [[cols.id, cols.idKind], [cols.tva, "TVA"], [cols.adresse, "Adresse"],
+    [cols.cp, "Code postal"], [cols.ville, "Ville"], [cols.pays, "Pays"]];
+  const lines = [];
+  for (const [col, label] of fields) {
+    const bv = beforeRow[col] || "", av = afterRow[col] || "";
+    if (bv !== av) {
+      lines.push(`<div class="ba-row"><span class="ba-l">${escapeHtml(label)}</span>` +
+        `<span class="ba-b">${bv ? escapeHtml(bv) : "(vide)"}</span><span class="ba-arrow">→</span>` +
+        `<span class="ba-a">${escapeHtml(av)}</span></div>`);
+    }
+  }
+  return lines.length ? `<details class="ba"><summary>voir avant / après</summary>${lines.join("")}</details>` : "";
 }
 
 /** @param {string} name @param {string} text @returns {void} */

@@ -38,17 +38,22 @@ await test("frenchVatFromSiren : clé de contrôle, \"\" si invalide", () => {
   assert.equal(M.frenchVatFromSiren("303265045"), "FR40303265045");
   assert.equal(M.frenchVatFromSiren("123"), "");
 });
-await test("cleanVat / frenchSirenFromVat (\"\" si non FR) / vatCountryCode / vatLocalPart", () => {
+await test("cleanVat / frenchSirenFromVat (\"\" si non FR) / vatCountryCode", () => {
   assert.equal(M.cleanVat(" fr 40-303.265045 "), "fr40303265045");
   assert.equal(M.frenchSirenFromVat("FR40303265045"), "303265045");
   assert.equal(M.frenchSirenFromVat("IE9692928F"), "");
   assert.equal(M.vatCountryCode("IE9692928F"), "IE");
   assert.equal(M.vatCountryCode("123456"), "");
-  assert.equal(M.vatLocalPart("IE9692928F", "IE"), "9692928F");
 });
 await test("normalizeName (accents + forme juridique)", () => {
   assert.equal(M.normalizeName("Éléctric SARL"), "ELECTRIC");
   assert.equal(M.normalizeName("ACME SAS"), "ACME");
+});
+await test("isGenericLabel : exact + préfixes (NOTE DE FRAIS, FRS DIVERS )", () => {
+  assert.equal(M.isGenericLabel("Taxi"), true);
+  assert.equal(M.isGenericLabel("NOTE DE FRAIS - Jean"), true);
+  assert.equal(M.isGenericLabel("frs divers paris"), true);
+  assert.equal(M.isGenericLabel("ACME"), false);
 });
 await test("detectColumns : union ok/missing (jamais null)", () => {
   assert.equal(COLS_SIRET.idKind, "SIRET");
@@ -128,21 +133,21 @@ await test("Ligne déjà complète : issue already, sans appel", async () => {
   assert.equal(res.stats.already, 1);
   assert.equal(calls, 0);
 });
-await test("Europe : VIES réussit -> completed_vies + adresse", async () => {
-  const row = mkRow(HDR("SIRET"), { Nom: "Meta", "Numéro TVA": "IE9692928F", Pays: "IE" });
-  const res = await M.enrichRows([row], COLS_SIRET,
-    { lookupVies: async () => ({ valide: true, nom_officiel: "META", adresse: "4 GRAND CANAL", code_postal: "", ville: "DUBLIN" }), sleep: noop });
-  assert.equal(res.stats.completed_vies, 1);
-  assert.equal(row["Adresse"], "4 GRAND CANAL");
-});
-await test("Europe : VIES bloqué -> foreign(viesError) + viesBlocked + pays corrigé", async () => {
+await test("Étranger UE : code pays corrigé, issue foreign (pas de VIES en ligne)", async () => {
   const row = mkRow(HDR("SIRET"), { Nom: "Meta", "Numéro TVA": "IE9692928F", Pays: "FR" });
-  const res = await M.enrichRows([row], COLS_SIRET, { lookupVies: async () => { throw new Error("CORS"); }, sleep: noop });
+  const res = await M.enrichRows([row], COLS_SIRET, { sleep: noop });
   assert.equal(res.stats.foreign, 1);
-  assert.equal(res.viesBlocked, true);
   const o = res.outcomes[0];
-  assert.equal(o.kind === "foreign" && o.viesError, true);
+  assert.equal(o.kind, "foreign");
+  assert.equal(o.kind === "foreign" && o.inEu, true);
   assert.equal(row["Pays"], "IE");
+});
+await test("Étranger hors UE : issue foreign inEu=false", async () => {
+  const row = mkRow(HDR("SIRET"), { Nom: "US Corp", "Numéro TVA": "US123456", Pays: "FR" });
+  const res = await M.enrichRows([row], COLS_SIRET, { sleep: noop });
+  const o = res.outcomes[0];
+  assert.equal(o.kind === "foreign" && o.inEu, false);
+  assert.equal(row["Pays"], "US");
 });
 await test("TVA mal formatée -> normalisée dans la ligne", async () => {
   const row = mkRow(HDR("SIRET"), { Nom: "X", "Numéro TVA": "FR40 303.265045", Pays: "FR" });

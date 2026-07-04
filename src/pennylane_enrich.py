@@ -154,6 +154,21 @@ DEFAULT_GENERIC_NAMES = [
     "Péage", "Peage", "Carburant", "Essence", "Pourboire", "Pourboires",
 ]
 
+# Prefixes generiques : un nom qui COMMENCE par l'un d'eux est considere comme
+# un libelle generique (ex: "NOTE DE FRAIS - Jean", "FRS DIVERS PARIS").
+# Comparaison insensible a la casse. Toujours appliques, en plus de la liste
+# exacte ci-dessus (et de --generic).
+DEFAULT_GENERIC_PREFIXES = ["NOTE DE FRAIS", "FRS DIVERS "]
+
+
+def is_generic_name(nom: str, generic_names: set) -> bool:
+    """Vrai si le nom est un libelle generique : correspondance exacte dans
+    `generic_names`, OU commence par l'un des DEFAULT_GENERIC_PREFIXES."""
+    if nom in generic_names:
+        return True
+    up = nom.upper()
+    return any(up.startswith(p) for p in DEFAULT_GENERIC_PREFIXES)
+
 
 def derive_output_base(input_csv: str) -> str:
     """Derive le nom de base des fichiers de sortie a partir du fichier
@@ -574,7 +589,7 @@ def main():
             stats["deja_traites_reprise"] += 1
             continue
 
-        if nom in generic_names:
+        if is_generic_name(nom, generic_names):
             stats["generic_skipped"] += 1
             rows_a_traiter.append(row)
             continue

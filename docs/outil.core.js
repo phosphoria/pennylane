@@ -1,27 +1,31 @@
 // @ts-check
 /**
- * outil.core.js — Bibliothèque PURE de complétion des exports Pennylane.
+ * outil.core.js — Bibliothèque PURE de complétion des exports Pennylane (web).
  *
  * Aucun accès au DOM : tout est testable en Node. Chaque ligne produit
  * exactement UN {@link Outcome} (union discriminée). Les états illégaux ne sont
  * pas représentables.
  *
- * Discipline de typage : pas de `null`, ni de valeur `undefined`/`unknown`/`any`
- * qui « fuit » dans le code métier. Les absences sont modélisées par des unions
- * discriminées (statuts) ou la chaîne vide `""`. Le SEUL point où subsistent des
- * champs optionnels et un `unknown`, c'est la frontière avec le JSON des API
- * (types `Api*` ci-dessous), immédiatement converti en modèle propre.
+ * Périmètre du navigateur : **France uniquement** (API Sirene, qui autorise les
+ * appels navigateur). Les fournisseurs **européens ne sont PAS complétés en
+ * ligne** : VIES (Commission européenne) n'autorise pas les appels cross-origin
+ * (CORS) depuis un navigateur. Le code pays est corrigé, et l'adresse doit être
+ * récupérée via la version téléchargeable (le script Python interroge VIES
+ * côté machine, où la restriction ne s'applique pas).
+ *
+ * Discipline de typage : pas de `null`, ni de `undefined`/`unknown`/`any` qui
+ * « fuit » dans le code métier. Les absences sont des unions discriminées ou la
+ * chaîne vide `""`. Le seul `unknown` est la frontière JSON (types `Api*`),
+ * converti aussitôt en modèle propre.
  */
 
 /* ============================== Constantes ============================== */
 
 export const API_URL = "https://recherche-entreprises.api.gouv.fr/search";
-export const VIES_URL = "https://ec.europa.eu/taxation_customs/vies/rest-api/ms";
 export const ANNUAIRE_URL = "https://annuaire-entreprises.data.gouv.fr/entreprise/";
 export const SLEEP_MS = 160;
-export const VIES_TIMEOUT = 8000;
 
-/** @type {ReadonlySet<string>} */
+/** Codes pays de l'UE (+ XI) — sert uniquement à qualifier un fournisseur étranger. @type {ReadonlySet<string>} */
 export const EU_COUNTRIES = new Set(["AT","BE","BG","CY","CZ","DE","DK","EE","EL","GR",
   "ES","FI","FR","HR","HU","IE","IT","LT","LU","LV","MT","NL","PL","PT","RO","SE","SI","SK","XI"]);
 
@@ -31,14 +35,24 @@ export const GENERIC_LABELS = new Set(["Hôtels","Hotels","Parking","Restaurants
   "Frais bancaires","Frais de mission","Notes de frais","Péage","Peage","Carburant","Essence",
   "Pourboire","Pourboires"]);
 
+/** Préfixes génériques (comparaison insensible à la casse). @type {readonly string[]} */
+export const GENERIC_PREFIXES = ["NOTE DE FRAIS", "FRS DIVERS "];
+
+/** Vrai si le nom est un libellé générique (exact ou par préfixe). @param {string} nom @returns {boolean} */
+export function isGenericLabel(nom) {
+  if (GENERIC_LABELS.has(nom)) return true;
+  const up = nom.toUpperCase();
+  return GENERIC_PREFIXES.some(p => up.startsWith(p));
+}
+
 /** @type {readonly OutcomeKind[]} */
 export const OUTCOME_KINDS = [
-  "already", "completed_fr", "completed_name", "completed_vies",
+  "already", "completed_fr", "completed_name",
   "generic", "diffusion", "not_found", "ambiguous", "foreign", "error"
 ];
 
 /** @type {ReadonlySet<string>} */
-export const COMPLETED_KINDS = new Set(["already", "completed_fr", "completed_name", "completed_vies"]);
+export const COMPLETED_KINDS = new Set(["already", "completed_fr", "completed_name"]);
 
 /* ========================== Types du domaine ========================== */
 
@@ -54,7 +68,7 @@ export const COMPLETED_KINDS = new Set(["already", "completed_fr", "completed_na
  * @property {string} pays
  */
 
-/** @typedef {Record<string,string>} Row  Ligne CSV : colonne → valeur (toujours des chaînes). */
+/** @typedef {Record<string,string>} Row */
 
 /**
  * @typedef {Object} CompanyInfo
@@ -68,44 +82,31 @@ export const COMPLETED_KINDS = new Set(["already", "completed_fr", "completed_na
 
 /** @typedef {[nom:string, siren:string, ville:string]} Candidate */
 
-/**
- * @typedef {Object} ViesResult
- * @property {boolean} valide
- * @property {string} nom_officiel
- * @property {string} adresse
- * @property {string} code_postal
- * @property {string} ville
- */
-
-/** Résultat d'une détection de colonnes (jamais null). @typedef {{ ok: true, columns: Columns } | { ok: false, missing: string[] }} ColumnsResult */
-
-/** Résultat d'une recherche par SIREN (jamais null). @typedef {{ status: "found", info: CompanyInfo } | { status: "protected" } | { status: "not_found" }} SirenLookup */
-
-/** Résultat d'une recherche par nom (jamais null). @typedef {{ status: "match", info: CompanyInfo, candidates: Candidate[] } | { status: "ambiguous", candidates: Candidate[] }} NameLookup */
+/** @typedef {{ ok: true, columns: Columns } | { ok: false, missing: string[] }} ColumnsResult */
+/** @typedef {{ status: "found", info: CompanyInfo } | { status: "protected" } | { status: "not_found" }} SirenLookup */
+/** @typedef {{ status: "match", info: CompanyInfo, candidates: Candidate[] } | { status: "ambiguous", candidates: Candidate[] }} NameLookup */
 
 /**
  * Dépendances réseau injectables (tests sans requête réelle).
  * @typedef {Object} Deps
  * @property {(siren:string)=>Promise<SirenLookup>} lookupSiren
  * @property {(nom:string)=>Promise<NameLookup>} lookupByName
- * @property {(cc:string, num:string)=>Promise<ViesResult>} lookupVies
  * @property {(ms:number)=>Promise<void>} sleep
  */
 
 /** @typedef {Outcome["kind"]} OutcomeKind */
 
 /**
- * Issue d'UNE ligne — union discriminée : chaque variante ne porte que ses données.
+ * Issue d'UNE ligne — union discriminée.
  * @typedef {(
  *   | { kind: "already" }
  *   | { kind: "generic" }
  *   | { kind: "completed_fr" }
  *   | { kind: "completed_name", siren: string, nomOfficiel: string }
- *   | { kind: "completed_vies", cc: string }
  *   | { kind: "diffusion", siren: string }
  *   | { kind: "not_found", siren: string }
  *   | { kind: "ambiguous", candidates: Candidate[] }
- *   | { kind: "foreign", cc: string, inEu: boolean, viesError: boolean }
+ *   | { kind: "foreign", cc: string, inEu: boolean }
  *   | { kind: "error", message: string }
  * )} Outcome
  */
@@ -119,7 +120,6 @@ export const COMPLETED_KINDS = new Set(["already", "completed_fr", "completed_na
  * @property {Row[]} done
  * @property {Row[]} todo
  * @property {Stats} stats
- * @property {boolean} viesBlocked
  */
 
 /* ============ Types de la frontière API (seuls champs optionnels) ============ */
@@ -127,7 +127,6 @@ export const COMPLETED_KINDS = new Set(["already", "completed_fr", "completed_na
 /** @typedef {{ siret?: string, code_postal?: string, libelle_commune?: string, numero_voie?: string, type_voie?: string, libelle_voie?: string, complement_adresse?: string, adresse?: string }} ApiSiege */
 /** @typedef {{ siren?: string, nom_complet?: string, nom_raison_sociale?: string, etat_administratif?: string, siege?: ApiSiege }} ApiCompany */
 /** @typedef {{ results?: ApiCompany[] }} ApiSearchResponse */
-/** @typedef {{ isValid?: boolean, name?: string, address?: string }} ViesResponse */
 
 /* ========================= Numéros TVA / SIREN ========================= */
 
@@ -144,12 +143,6 @@ export function vatCountryCode(v) {
 export function frenchSirenFromVat(v) {
   const m = cleanVat(v).match(/^FR\d{2}(\d{9})$/i);
   return m ? m[1] : "";
-}
-
-/** Partie du numéro après le code pays (pour VIES). @param {string} v @param {string} cc @returns {string} */
-export function vatLocalPart(v, cc) {
-  v = cleanVat(v);
-  return v.toUpperCase().startsWith(cc) ? v.slice(cc.length) : v;
 }
 
 /** Reconstruit la TVA FR depuis un SIREN (clé officielle), ou "" si invalide. @param {string} siren @returns {string} */
@@ -210,13 +203,9 @@ const COLUMN_SPECS = /** @type {const} */ ([
   ["nom", ["Nom"]], ["id", ["SIRET", "SIREN"]], ["tva", ["Numéro TVA", "Numero TVA", "TVA"]],
   ["adresse", ["Adresse"]], ["cp", ["Code postal"]], ["ville", ["Ville"]], ["pays", ["Pays"]]
 ]);
-/** Étiquettes lisibles pour le message d'erreur. */
 const COLUMN_LABELS = { nom: "Nom", id: "SIRET/SIREN", tva: "TVA", adresse: "Adresse", cp: "Code postal", ville: "Ville", pays: "Pays" };
 
-/**
- * Détecte les colonnes utiles. Renvoie un résultat discriminé (jamais null).
- * @param {string[]} header @returns {ColumnsResult}
- */
+/** @param {string[]} header @returns {ColumnsResult} */
 export function detectColumns(header) {
   const pick = (/** @type {readonly string[]} */ names) => names.find(n => header.includes(n)) || "";
   /** @type {Record<string,string>} */ const found = {};
@@ -243,7 +232,7 @@ export function isComplete(row, cols) {
   return Boolean(row[cols.id] && row[cols.adresse] && row[cols.cp] && row[cols.ville]);
 }
 
-/** Remplit les champs vides avec une CompanyInfo (mutation). @param {Row} row @param {Columns} cols @param {CompanyInfo} info @returns {void} */
+/** @param {Row} row @param {Columns} cols @param {CompanyInfo} info @returns {void} */
 export function applyInfo(row, cols, info) {
   if (!row[cols.id]) row[cols.id] = idValueForColumns(cols, info);
   if (!row[cols.adresse]) row[cols.adresse] = info.adresse;
@@ -251,16 +240,9 @@ export function applyInfo(row, cols, info) {
   if (!row[cols.ville]) row[cols.ville] = info.ville;
 }
 
-/** Remplit adresse/CP/ville depuis un résultat VIES (mutation). @param {Row} row @param {Columns} cols @param {ViesResult} v @returns {void} */
-export function applyViesInfo(row, cols, v) {
-  if (!row[cols.adresse]) row[cols.adresse] = v.adresse;
-  if (!row[cols.cp] && v.code_postal) row[cols.cp] = v.code_postal;
-  if (!row[cols.ville] && v.ville) row[cols.ville] = v.ville;
-}
-
 /* ===================== Mapping des réponses API ===================== */
 
-/** Traite absence / « [NON-DIFFUSIBLE] » comme "". @param {string|undefined} v @returns {string} */
+/** @param {string|undefined} v @returns {string} */
 export function cleanApiValue(v) { return (!v || v === "[NON-DIFFUSIBLE]") ? "" : v; }
 
 /** @param {ApiSiege} siege @returns {string} */
@@ -290,7 +272,7 @@ export function infoFromApiMatch(match) {
 /** @param {number} ms @returns {Promise<void>} */
 export const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-/** Frontière JSON : seul endroit renvoyant `unknown` (converti aussitôt). @param {string} url @returns {Promise<unknown>} */
+/** Frontière JSON : seul endroit renvoyant `unknown`. @param {string} url @returns {Promise<unknown>} */
 async function fetchJson(url) {
   const r = await fetch(url, { headers: { "Accept": "application/json" } });
   if (!r.ok) throw new Error("HTTP " + r.status);
@@ -324,26 +306,8 @@ export async function lookupByName(nom) {
   return { status: "match", info: infoFromApiMatch(exact[0]), candidates: shortlist };
 }
 
-/** @param {string} cc @param {string} num @returns {Promise<ViesResult>} */
-export async function lookupVies(cc, num) {
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), VIES_TIMEOUT);
-  try {
-    const r = await fetch(`${VIES_URL}/${cc}/vat/${encodeURIComponent(num)}`,
-      { signal: ctrl.signal, headers: { "Accept": "application/json" } });
-    if (!r.ok) throw new Error("HTTP " + r.status);
-    const d = /** @type {ViesResponse} */ (await r.json());
-    const name = d.name === "---" ? "" : (d.name || "");
-    const address = d.address === "---" ? "" : (d.address || "");
-    let code_postal = "", ville = "";
-    const m = address.match(/\b(\d{4,6})\b\s*,?\s*([A-ZÀ-Ÿ' \-]+)/);
-    if (m) { code_postal = m[1]; ville = m[2].trim().replace(/,+$/, "").trim(); }
-    return { valide: Boolean(d.isValid), nom_officiel: name, adresse: address, code_postal, ville };
-  } finally { clearTimeout(timer); }
-}
-
 /** @returns {Deps} */
-export function defaultDeps() { return { lookupSiren, lookupByName, lookupVies, sleep }; }
+export function defaultDeps() { return { lookupSiren, lookupByName, sleep }; }
 
 /* ===================== Résolution d'une ligne ===================== */
 
@@ -387,26 +351,23 @@ async function resolveFrench(row, cols, siren, deps) {
   }
 }
 
-/** @param {Row} row @param {Columns} cols @param {string} vat @param {Deps} deps @returns {Promise<Outcome>} */
-async function resolveForeign(row, cols, vat, deps) {
+/**
+ * Fournisseur étranger : on corrige seulement le code pays. L'adresse (VIES)
+ * n'est PAS récupérable en ligne → à faire via la version téléchargeable.
+ * @param {Row} row @param {Columns} cols @param {string} vat @returns {Outcome}
+ */
+function resolveForeign(row, cols, vat) {
   const cc = vatCountryCode(vat);
   if (cc && cc !== "FR") row[cols.pays] = cc;
   const inEu = cc !== "" && cc !== "FR" && EU_COUNTRIES.has(cc);
-  if (!inEu) return { kind: "foreign", cc, inEu: false, viesError: false };
-  try {
-    const vies = await deps.lookupVies(cc, vatLocalPart(vat, cc));
-    if (vies.nom_officiel && vies.adresse) { applyViesInfo(row, cols, vies); return { kind: "completed_vies", cc }; }
-    return { kind: "foreign", cc, inEu: true, viesError: false };
-  } catch {
-    return { kind: "foreign", cc, inEu: true, viesError: true };
-  }
+  return { kind: "foreign", cc, inEu };
 }
 
 /** Résout UNE ligne (mutation) et renvoie son issue. @param {Row} row @param {Columns} cols @param {Deps} deps @returns {Promise<Outcome>} */
 export async function resolveRow(row, cols, deps) {
   if (isComplete(row, cols)) return { kind: "already" };
   const nom = (row[cols.nom] || "").trim();
-  if (GENERIC_LABELS.has(nom)) return { kind: "generic" };
+  if (isGenericLabel(nom)) return { kind: "generic" };
 
   const rawVat = (row[cols.tva] || "").trim();
   if (!rawVat) return resolveByName(row, cols, nom, deps);
@@ -414,7 +375,7 @@ export async function resolveRow(row, cols, deps) {
   const vat = cleanVat(rawVat);
   if (vat !== rawVat) row[cols.tva] = vat;
   const siren = frenchSirenFromVat(vat);
-  return siren ? resolveFrench(row, cols, siren, deps) : resolveForeign(row, cols, vat, deps);
+  return siren ? resolveFrench(row, cols, siren, deps) : resolveForeign(row, cols, vat);
 }
 
 /* ===================== Orchestration & agrégation ===================== */
@@ -431,19 +392,17 @@ export function summarize(rows, outcomes) {
   /** @type {Row[]} */ const done = [];
   /** @type {Row[]} */ const todo = [];
   const stats = emptyStats();
-  let viesBlocked = false;
   outcomes.forEach((o, i) => {
     stats[o.kind]++;
     (COMPLETED_KINDS.has(o.kind) ? done : todo).push(rows[i]);
-    if (o.kind === "foreign" && o.viesError) viesBlocked = true;
   });
-  return { rows, outcomes, done, todo, stats, viesBlocked };
+  return { rows, outcomes, done, todo, stats };
 }
 
 /**
  * Complète toutes les lignes (appels réseau espacés & dédupliqués).
  * @param {Row[]} rows @param {Columns} cols
- * @param {Partial<Deps>} [overrides]  Surcharge des dépendances (tests)
+ * @param {Partial<Deps>} [overrides]
  * @param {(processed:number, total:number)=>void} [onProgress]
  * @returns {Promise<EnrichResult>}
  */
@@ -452,7 +411,6 @@ export async function enrichRows(rows, cols, overrides, onProgress = () => {}) {
   /** @type {Deps} */ const deps = {
     lookupSiren: throttledMemo(base.lookupSiren, base.sleep, SLEEP_MS),
     lookupByName: throttledMemo(base.lookupByName, base.sleep, SLEEP_MS),
-    lookupVies: throttledMemo(base.lookupVies, base.sleep, SLEEP_MS),
     sleep: base.sleep
   };
   /** @type {Outcome[]} */ const outcomes = [];

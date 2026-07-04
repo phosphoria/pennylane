@@ -92,8 +92,10 @@ ont un LEI, puis le recours manuel au registre national pour le reste.
 - **Outil web** : traitement 100 % local (le fichier ne quitte pas le poste) ;
   seuls SIREN/nom/TVA partent en HTTPS vers les APIs officielles. Toute donnée
   externe (CSV, API) est **échappée** avant insertion HTML (anti-XSS), et une
-  **CSP** (`default-src 'none'`, `script-src 'self'`, `connect-src` limité aux
-  deux APIs) durcit les pages. Aucun script tiers, aucun CDN.
+  **CSP** (`default-src 'none'`, `script-src 'self'`, `connect-src` limité à
+  l'API Sirene) durcit les pages. Aucun script tiers, aucun CDN. L'outil en
+  ligne ne couvre que la France : VIES n'autorise pas les appels navigateur
+  (CORS), l'Europe passe donc par la version téléchargeable (VIES côté machine).
 - **Script Python** : pas de `shell`/`eval`/`subprocess` ; URLs échappées
   (`urllib.parse.quote`) vers des endpoints fixes ; TLS vérifié par défaut.
 - **CI/CD** : workflows en moindre privilège (`permissions: contents: read` pour

@@ -87,6 +87,14 @@ class PureFunctionTests(unittest.TestCase):
             pe.derive_output_base("Geode/PENNYLANE_GEODE_Export_des_clients.csv"),
             os.path.join("Geode", "GEODE_clients"))
 
+    def test_is_generic_name(self):
+        gs = set(pe.DEFAULT_GENERIC_NAMES)
+        self.assertTrue(pe.is_generic_name("Taxi", gs))                  # exact
+        self.assertTrue(pe.is_generic_name("NOTE DE FRAIS - Jean", gs))  # prefixe
+        self.assertTrue(pe.is_generic_name("note de frais mars", gs))    # insensible casse
+        self.assertTrue(pe.is_generic_name("FRS DIVERS PARIS", gs))      # prefixe avec espace
+        self.assertFalse(pe.is_generic_name("ACME", gs))
+
 
 # ===========================================================================
 # 2. Couleurs terminal

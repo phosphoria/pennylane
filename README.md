@@ -12,11 +12,13 @@ colonnes vides.
 
 **Deux façons de l'utiliser :**
 
-- 🌐 **[Version en ligne](https://phosphoria.github.io/pennylane/outil.html)** — rien
-  à installer : on dépose le CSV dans le navigateur, tout est traité **en local**
-  (les données ne quittent pas le poste). Couvre les entreprises **françaises**.
-- 💻 **Version à télécharger** (ci-dessous) — ajoute en plus les adresses
-  **européennes** via VIES.
+- 🌐 **[Version en ligne](https://phosphoria.github.io/pennylane/)** (recommandée) —
+  rien à installer : on dépose le CSV dans le navigateur, tout est traité **en
+  local** (les données ne quittent pas le poste). Couvre les entreprises
+  **françaises** (Sirene). Les fournisseurs **européens ne sont pas complétés en
+  ligne** : VIES n'autorise pas les appels depuis un navigateur (CORS).
+- 💻 **Version à télécharger** — ajoute les adresses **européennes** via VIES
+  (le script interroge VIES côté machine, où la restriction ne s'applique pas).
 
 > Décisions techniques, dépendances et compromis : voir **[CONCEPTION.md](CONCEPTION.md)**.
 
@@ -226,10 +228,10 @@ le lien de chaque candidat, pour trancher à la main en quelques secondes.
 │       ├── release.yml  # construit le zip de release (2 fichiers) sur tag
 │       └── tests.yml    # lance les tests unitaires (push / pull request)
 ├── docs/
-│   ├── index.html     # page publique (GitHub Pages), orientée utilisateur final
-│   ├── outil.html     # outil « en ligne » (structure seule)
-│   ├── outil.core.js  # bibliothèque pure (logique, sans DOM) — testée
-│   └── outil.ui.js    # contrôleur DOM (module ES, importe la lib)
+│   ├── index.html       # page d'accueil = l'outil en ligne (structure seule)
+│   ├── telecharger.html # page secondaire : version à télécharger + à propos + contact
+│   ├── outil.core.js    # bibliothèque pure (logique, sans DOM) — testée
+│   └── outil.ui.js      # contrôleur DOM de l'outil (module ES, importe la lib)
 ├── tests/
 │   ├── test_pennylane_enrich.py  # tests Python (script + lanceur)
 │   └── test_outil.js             # tests JS (bibliothèque de l'outil web)
@@ -259,7 +261,7 @@ téléchargé à la volée par `npx`, rien n'est ajouté au dépôt) et tourne a
 Le côté **Python** couvre le script, le lanceur et la flexibilité SIRET/SIREN ;
 le côté **JavaScript** couvre la bibliothèque de l'outil web
 (`docs/outil.core.js` : parsing CSV, `enrichRows` avec appels réseau simulés,
-issues typées, repli VIES, déduplication…). Le DOM (`docs/outil.ui.js`) reste
+issues typées, déduplication…). Le DOM (`docs/outil.ui.js`) reste
 volontairement mince et non testé unitairement. Les deux suites tournent en CI
 (`.github/workflows/tests.yml`, plus un job Windows pour Python).
 
