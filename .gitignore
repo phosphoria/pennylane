@@ -4,6 +4,7 @@
 .DS_Store
 
 # Données clients réelles — ne jamais versionner (confidentialité fournisseurs)
+/samples
 *.csv
 *.report.txt
 

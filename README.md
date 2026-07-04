@@ -10,6 +10,14 @@ du **numéro de TVA** (ou, à défaut, du **nom**) de chaque fournisseur, on
 interroge des **bases de données publiques et gratuites**, et on remplit les
 colonnes vides.
 
+**Deux façons de l'utiliser :**
+
+- 🌐 **[Version en ligne](https://phosphoria.github.io/pennylane/outil.html)** — rien
+  à installer : on dépose le CSV dans le navigateur, tout est traité **en local**
+  (les données ne quittent pas le poste). Couvre les entreprises **françaises**.
+- 💻 **Version à télécharger** (ci-dessous) — ajoute en plus les adresses
+  **européennes** via VIES.
+
 > Décisions techniques, dépendances et compromis : voir **[CONCEPTION.md](CONCEPTION.md)**.
 
 ---
@@ -217,7 +225,8 @@ le lien de chaque candidat, pour trancher à la main en quelques secondes.
 │       ├── release.yml  # construit le zip de release (2 fichiers) sur tag
 │       └── tests.yml    # lance les tests unitaires (push / pull request)
 ├── docs/
-│   └── index.html     # page publique (GitHub Pages), orientée utilisateur final
+│   ├── index.html     # page publique (GitHub Pages), orientée utilisateur final
+│   └── outil.html     # outil « en ligne » (complétion FR 100 % dans le navigateur)
 ├── tests/
 │   └── test_pennylane_enrich.py  # tests unitaires (bibliothèque standard)
 └── src/
