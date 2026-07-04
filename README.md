@@ -220,30 +220,48 @@ le lien de chaque candidat, pour trancher à la main en quelques secondes.
 ├── README.md          # utilisation
 ├── CONCEPTION.md      # choix techniques, dépendances, contraintes, compromis
 ├── Makefile           # raccourcis : make test, make zip, make run…
+├── package.json       # « type: module » (pour Node) + script de test JS
 ├── .github/
 │   └── workflows/
 │       ├── release.yml  # construit le zip de release (2 fichiers) sur tag
 │       └── tests.yml    # lance les tests unitaires (push / pull request)
 ├── docs/
 │   ├── index.html     # page publique (GitHub Pages), orientée utilisateur final
-│   └── outil.html     # outil « en ligne » (complétion FR 100 % dans le navigateur)
+│   ├── outil.html     # outil « en ligne » (structure seule)
+│   ├── outil.core.js  # bibliothèque pure (logique, sans DOM) — testée
+│   └── outil.ui.js    # contrôleur DOM (module ES, importe la lib)
 ├── tests/
-│   └── test_pennylane_enrich.py  # tests unitaires (bibliothèque standard)
+│   ├── test_pennylane_enrich.py  # tests Python (script + lanceur)
+│   └── test_outil.js             # tests JS (bibliothèque de l'outil web)
 └── src/
-    ├── pennylane_enrich.py                  # le script principal
-    └── Traiter un export Pennylane.command  # lanceur double-cliquable (macOS)
+    ├── pennylane_enrich.py                  # le script principal (multiplateforme)
+    ├── Traiter un export Pennylane.command  # lanceur double-cliquable (macOS)
+    └── Traiter un export Pennylane.bat      # lanceur double-cliquable (Windows)
 ```
 
 ### Lancer les tests
 
-Aucune dépendance à installer (uniquement `unittest` de la bibliothèque
-standard). Depuis la racine du dépôt :
+Aucune dépendance à installer (Python `unittest` pour le script, Node pour
+l'outil web). Depuis la racine du dépôt :
 
 ```bash
-make test          # raccourci
-# ou, sans make :
-python3 -m unittest discover -s tests -v
+make test-all      # Python + JavaScript
+make test          # Python seulement  (python3 -m unittest discover -s tests)
+make test-js       # JavaScript seulement  (node tests/test_outil.js)
+make typecheck     # vérifie les types JSDoc via TypeScript (sans build ni dépendance ajoutée)
 ```
+
+Le JS est écrit en **JSDoc + `// @ts-check`** avec une discipline stricte (pas de
+`null`/`undefined`/`any`/`unknown` hors de la frontière API : absences modélisées
+par des unions discriminées). `make typecheck` lance `tsc --strict` (TypeScript
+téléchargé à la volée par `npx`, rien n'est ajouté au dépôt) et tourne aussi en CI.
+
+Le côté **Python** couvre le script, le lanceur et la flexibilité SIRET/SIREN ;
+le côté **JavaScript** couvre la bibliothèque de l'outil web
+(`docs/outil.core.js` : parsing CSV, `enrichRows` avec appels réseau simulés,
+issues typées, repli VIES, déduplication…). Le DOM (`docs/outil.ui.js`) reste
+volontairement mince et non testé unitairement. Les deux suites tournent en CI
+(`.github/workflows/tests.yml`, plus un job Windows pour Python).
 
 Autres raccourcis (`make help` pour la liste) : `make zip` construit le zip de
 distribution, `make run CSV=chemin.csv` traite un export, `make clean` supprime

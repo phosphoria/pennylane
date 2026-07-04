@@ -1,0 +1,10 @@
+{
+  "name": "pennylane-enrich",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Complétion des exports fournisseurs/clients Pennylane (script Python + outil web).",
+  "scripts": {
+    "test": "node tests/test_outil.js"
+  }
+}

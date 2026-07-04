@@ -12,11 +12,14 @@ SCRIPT   := src/pennylane_enrich.py
 LAUNCHER := src/Traiter un export Pennylane.command
 
 .DEFAULT_GOAL := help
-.PHONY: help test run zip clean clean-outputs
+.PHONY: help test test-js test-all typecheck run zip clean clean-outputs
 
 help:
 	@echo "Cibles disponibles :"
-	@echo "  make test          - lance les tests unitaires"
+	@echo "  make test          - tests Python (script + lanceur)"
+	@echo "  make test-js       - tests JavaScript (outil web)"
+	@echo "  make test-all      - tous les tests (Python + JS)"
+	@echo "  make typecheck     - vérifie les types JSDoc (via TypeScript, sans build)"
 	@echo "  make run CSV=chemin.csv  - traite un export Pennylane"
 	@echo "  make zip           - construit dist/pennylane-outil.zip (2 fichiers)"
 	@echo "  make clean         - supprime les caches Python et dist/"
@@ -24,6 +27,18 @@ help:
 
 test:
 	$(PY) -m unittest discover -s tests -v
+
+test-js:
+	node tests/test_outil.js
+
+test-all: test test-js
+
+# Vérifie les types (JSDoc + // @ts-check) sans étape de build ni dépendance
+# ajoutée au dépôt : TypeScript est téléchargé à la volée par npx.
+typecheck:
+	npx -y -p typescript@5 tsc --noEmit --checkJs --allowJs --strict \
+	  --target es2022 --module esnext --moduleResolution bundler --lib es2022,dom \
+	  docs/outil.core.js docs/outil.ui.js
 
 run:
 	@test -n "$(CSV)" || { echo "Usage : make run CSV=chemin/vers/export.csv"; exit 1; }
