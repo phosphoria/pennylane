@@ -84,3 +84,21 @@ ont un LEI, puis le recours manuel au registre national pour le reste.
   Commission européenne ; pas de SLA.
 - **Pas d'authentification GitHub dans l'environnement d'édition** : le `push`
   initial doit être lancé manuellement (voir README / Terminal).
+
+## Sécurité
+
+- **Aucun secret** : les APIs sont publiques et sans clé → rien à stocker ni à
+  fuiter. Données clients jamais versionnées (`.gitignore`).
+- **Outil web** : traitement 100 % local (le fichier ne quitte pas le poste) ;
+  seuls SIREN/nom/TVA partent en HTTPS vers les APIs officielles. Toute donnée
+  externe (CSV, API) est **échappée** avant insertion HTML (anti-XSS), et une
+  **CSP** (`default-src 'none'`, `script-src 'self'`, `connect-src` limité aux
+  deux APIs) durcit les pages. Aucun script tiers, aucun CDN.
+- **Script Python** : pas de `shell`/`eval`/`subprocess` ; URLs échappées
+  (`urllib.parse.quote`) vers des endpoints fixes ; TLS vérifié par défaut.
+- **CI/CD** : workflows en moindre privilège (`permissions: contents: read` pour
+  les tests) et **actions épinglées au SHA de commit** (pas de tag mobile), pour
+  éviter qu'un tag compromis n'injecte du code lors d'une release.
+- **Limite connue** : lanceurs non signés (Gatekeeper/SmartScreen à contourner
+  une fois) ; injection de formule CSV possible si le fichier de sortie est
+  ouvert dans Excel (non mitigé car corromprait la réimport Pennylane).

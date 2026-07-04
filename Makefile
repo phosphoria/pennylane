@@ -37,7 +37,7 @@ test-all: test test-js
 # ajoutée au dépôt : TypeScript est téléchargé à la volée par npx.
 typecheck:
 	npx -y -p typescript@5 tsc --noEmit --checkJs --allowJs --strict \
-	  --target es2022 --module esnext --moduleResolution bundler --lib es2022,dom \
+	  --target es2022 --module esnext --moduleResolution bundler --lib es2022,dom,dom.iterable \
 	  docs/outil.core.js docs/outil.ui.js
 
 run:
