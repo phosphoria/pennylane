@@ -27,11 +27,6 @@
     background:linear-gradient(160deg,#eaf0ff 0%,#f6f7f9 70%);
     border-bottom:1px solid var(--line); padding:64px 0 48px;
   }
-  .badge{
-    display:inline-block; font-size:13px; font-weight:600; color:var(--brand-dark);
-    background:#e3ebff; border:1px solid #cfddff; padding:4px 12px; border-radius:999px;
-    margin-bottom:18px;
-  }
   h1{font-size:34px; line-height:1.2; margin:0 0 14px}
   .lead{font-size:18px; color:var(--muted); margin:0 0 28px; max-width:620px}
   .cta{
@@ -66,8 +61,7 @@
   }
   ul.limits strong{font-weight:700}
 
-  /* Sections "Objectif" et "Limites" : pas de cadre blanc (cartes a plat) */
-  #objectif .card{background:transparent; border:none; box-shadow:none; padding:0}
+  /* Section "Limites" : pas de cadre blanc (cartes a plat) */
   #limites ul.limits li{background:transparent; border:none; box-shadow:none; padding:4px 0 4px 40px}
   #limites ul.limits li::before{left:6px; top:6px}
 
@@ -83,15 +77,6 @@
   .crumbs a:hover{color:var(--brand)}
   .crumbs a.active{color:var(--ink); font-weight:700}
   .crumbs .sep{color:#c2c9d4}
-
-  .grid{display:grid; grid-template-columns:1fr 1fr; gap:16px}
-  @media (max-width:640px){.grid{grid-template-columns:1fr}}
-  .card{
-    background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
-    padding:20px 22px; box-shadow:var(--shadow);
-  }
-  .card h3{margin:0 0 6px; font-size:16px}
-  .card p{margin:0; color:var(--muted); font-size:15px}
 
   ol.steps{counter-reset:s; list-style:none; padding:0; margin:0; display:grid; gap:14px}
   ol.steps li{
@@ -123,34 +108,6 @@
   .figure .tag{display:inline-block; background:#dfe7ff; color:var(--brand-dark);
     border-radius:6px; padding:1px 8px; font-weight:700; font-size:12.5px}
 
-  /* contact */
-  .contacts{display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:stretch}
-  @media (max-width:640px){.contacts{grid-template-columns:1fr}}
-  .contact{
-    background:linear-gradient(160deg,#101826 0%,#1b2740 100%); color:#eef2f8;
-    border-radius:var(--radius); padding:26px; box-shadow:var(--shadow);
-    display:flex; flex-direction:column; gap:18px;
-  }
-  .contact .head{display:flex; align-items:center; gap:16px}
-  .avatar{
-    width:64px; height:64px; border-radius:50%; flex:0 0 auto; position:relative; overflow:hidden;
-    background:linear-gradient(135deg,#3a7bff,#9d6bff); color:#fff;
-    display:flex; align-items:center; justify-content:center; font-weight:700; font-size:24px;
-  }
-  .avatar img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
-  .contact .who{flex:1 1 auto; min-width:0}
-  .contact .who .name{font-size:20px; font-weight:700}
-  .contact .who .role{color:#aab6cc; font-size:15px}
-  .contact .links{display:flex; gap:10px; flex-wrap:wrap}
-  .clink{
-    display:inline-flex; align-items:center; gap:7px; background:rgba(255,255,255,.08);
-    border:1px solid rgba(255,255,255,.16); color:#eef2f8; padding:9px 14px;
-    border-radius:10px; font-weight:600; font-size:14.5px;
-  }
-  .clink:hover{background:rgba(255,255,255,.16); text-decoration:none}
-  .clink svg{width:16px; height:16px; fill:currentColor}
-  .clink img{height:16px; width:auto; display:block}
-
   footer{padding:34px 0 60px; color:var(--muted); font-size:13.5px; text-align:center}
 </style>
 </head>
@@ -167,50 +124,19 @@
     <p class="lead">La version installable (Mac / Windows) ajoute les adresses
       <b>européennes</b> (via VIES) que l'outil en ligne ne peut pas récupérer, en plus
       de tout ce que fait la version en ligne.</p>
-    <div style="margin-top:26px">
-      <a class="cta" href="index.html">✨ Utiliser l'outil en ligne (recommandé)</a>
-      <a class="cta secondary" href="#installation">Télécharger &amp; installer</a>
-    </div>
-    <p class="lead" style="margin-top:14px;font-size:14.5px">
-      <b>En ligne</b> (le plus simple) : entreprises <b>françaises</b>, rien à installer, données 100&nbsp;% locales.
-      &nbsp;·&nbsp; <b>À télécharger</b> (cette page) : ajoute en plus les adresses <b>européennes</b> via VIES.
-    </p>
+    <div class="note" style="margin-top:0;margin-bottom:20px">✨ Le plus simple ne demande <b>aucune installation</b> : l'<a href="index.html">outil en ligne</a> (entreprises françaises).</div>
   </div>
 </header>
-
-<section id="objectif">
-  <div class="wrap">
-    <nav class="crumbs" aria-label="Navigation">
-      <a href="#objectif" class="active">Objectif</a><span class="sep">›</span>
-      <a href="#installation">Installation</a><span class="sep">›</span>
-      <a href="#utilisation">Utilisation</a><span class="sep">›</span>
-      <a href="#limites">Limites</a><span class="sep">›</span>
-      <a href="#aide">Aide</a>
-    </nav>
-    <h2>À quoi ça sert</h2>
-    <p class="sub">Pennylane permet d'exporter les fiches incomplètes en CSV, puis de réimporter le fichier corrigé. L'outil automatise l'étape intermédiaire.</p>
-    <div class="grid">
-      <div class="card"><h3>🇫🇷 Fournisseurs français</h3><p>SIRET, adresse, code postal et ville récupérés via la base officielle Sirene/INSEE.</p></div>
-      <div class="card"><h3>🇪🇺 Fournisseurs européens</h3><p>Nom et adresse via VIES (Commission européenne), quand le pays les transmet.</p></div>
-      <div class="card"><h3>🔎 Sans numéro de TVA</h3><p>Recherche prudente par nom : complété seulement en cas de correspondance unique et certaine.</p></div>
-      <div class="card"><h3>✅ Prêt à réimporter</h3><p>Un fichier « traités » réimportable dans Pennylane + un fichier « à traiter » + un rapport.</p></div>
-    </div>
-  </div>
-</section>
 
 <section id="installation">
   <div class="wrap">
     <nav class="crumbs" aria-label="Navigation">
-      <a href="#objectif">Objectif</a><span class="sep">›</span>
       <a href="#installation" class="active">Installation</a><span class="sep">›</span>
       <a href="#utilisation">Utilisation</a><span class="sep">›</span>
-      <a href="#limites">Limites</a><span class="sep">›</span>
-      <a href="#aide">Aide</a>
+      <a href="#limites">Limites</a>
     </nav>
     <h2>Installation</h2>
-    <p class="sub">Pas de ligne de commande. À faire une seule fois — suivez les images.</p>
-    <div class="note" style="margin-top:0;margin-bottom:20px">✨ Le plus simple ne demande <b>aucune installation</b> : l'<a href="index.html">outil en ligne</a> (entreprises françaises). Cette section décrit la <b>version à télécharger</b>, qui ajoute en plus les adresses européennes (VIES).</div>
-    <p class="osnote">🍎 <b>Sur macOS</b> : suivez les étapes ci-dessous. &nbsp;·&nbsp; 🪟 <b>Sur Windows</b> : voir <a href="#windows">plus bas</a>.</p>
+    <p class="sub">À faire une seule fois.</p>
     <ol class="steps">
 
       <li><strong>Télécharger l'outil</strong>
@@ -337,11 +263,9 @@
 <section id="utilisation">
   <div class="wrap">
     <nav class="crumbs" aria-label="Navigation">
-      <a href="#objectif">Objectif</a><span class="sep">›</span>
       <a href="#installation">Installation</a><span class="sep">›</span>
       <a href="#utilisation" class="active">Utilisation</a><span class="sep">›</span>
-      <a href="#limites">Limites</a><span class="sep">›</span>
-      <a href="#aide">Aide</a>
+      <a href="#limites">Limites</a>
     </nav>
     <h2>Utilisation au quotidien</h2>
     <p class="sub">Une fois la fenêtre ouverte, tout se fait au glisser-déposer.</p>
@@ -357,11 +281,9 @@
 <section id="limites">
   <div class="wrap">
     <nav class="crumbs" aria-label="Navigation">
-      <a href="#objectif">Objectif</a><span class="sep">›</span>
       <a href="#installation">Installation</a><span class="sep">›</span>
       <a href="#utilisation">Utilisation</a><span class="sep">›</span>
-      <a href="#limites" class="active">Limites</a><span class="sep">›</span>
-      <a href="#aide">Aide</a>
+      <a href="#limites" class="active">Limites</a>
     </nav>
     <h2>Limites connues</h2>
     <p class="sub">Quelques cas que l'outil ne peut pas compléter tout seul — à finir à la main.</p>
@@ -371,72 +293,6 @@
       <li><strong>Entreprises individuelles « protégées »</strong> : la loi les autorise à ne pas publier leur adresse — à compléter manuellement.</li>
       <li><strong>macOS uniquement</strong> pour le lanceur en double-clic.</li>
     </ul>
-  </div>
-</section>
-
-<section id="aide">
-  <div class="wrap">
-    <nav class="crumbs" aria-label="Navigation">
-      <a href="#objectif">Objectif</a><span class="sep">›</span>
-      <a href="#installation">Installation</a><span class="sep">›</span>
-      <a href="#utilisation">Utilisation</a><span class="sep">›</span>
-      <a href="#limites">Limites</a><span class="sep">›</span>
-      <a href="#aide" class="active">Aide</a>
-    </nav>
-    <h2>Une question, un besoin ?</h2>
-    <p class="sub">N'hésitez pas à nous contacter.</p>
-    <div class="contacts">
-    <div class="contact">
-      <div class="head">
-        <div class="avatar"><img src="img/vincent-clair.png" alt="Vincent Clair">VC</div>
-        <div class="who">
-          <div class="name">Vincent Clair</div>
-          <div class="role">Tech Lead / Architecte Logiciel</div>
-        </div>
-      </div>
-      <div class="links">
-        <a class="clink" href="https://www.linkedin.com/in/vincent-clair/" target="_blank" rel="noopener">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.07 2.07 0 1 1 0-4.14 2.07 2.07 0 0 1 0 4.14zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>
-          LinkedIn
-        </a>
-        <a class="clink" href="https://www.malt.fr/profile/vincentclair" target="_blank" rel="noopener" aria-label="Malt">
-          <svg width="43" height="43" viewBox="0 0 43 43" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M32.1993 10.5357C29.3591 7.69551 26.3252 9.53378 24.4265 11.4325L6.49014 29.3694C4.59144 31.2679 2.60411 34.1526 5.59336 37.1414C8.58262 40.1313 11.4673 38.1436 13.3656 36.2449L31.3023 18.3084C33.201 16.4095 35.0393 13.3755 32.1993 10.5357Z" fill="white"/>
-            <path d="M15.0631 9.80108L18.8611 13.5989L22.727 9.733C22.9894 9.46992 23.2559 9.22579 23.524 8.99555C23.1192 6.95303 21.9537 5.1065 18.8593 5.1065C15.759 5.1065 14.595 6.96028 14.1923 9.00724C14.4818 9.25762 14.7706 9.5086 15.0631 9.80108Z" fill="white"/>
-            <path d="M22.7248 38.0122L18.8613 34.1486L15.0653 37.9442C14.7771 38.2326 14.4902 38.4961 14.2046 38.7436C14.6399 40.8258 15.8718 42.733 18.8597 42.733C21.8554 42.733 23.0857 40.8156 23.5182 38.7267C23.2525 38.4981 22.9866 38.2739 22.7248 38.0122Z" fill="white"/>
-            <path d="M13.4522 19.0079H6.13018C3.44549 19.0079 0 19.8537 0 23.8699C0 26.8666 1.91804 28.0972 4.00729 28.5294C4.25465 28.2438 13.4522 19.0079 13.4522 19.0079Z" fill="white"/>
-            <path d="M33.7268 19.2029C33.4951 19.4724 24.2782 28.7317 24.2782 28.7317H31.4963C34.1812 28.7317 37.6265 28.0974 37.6265 23.8699C37.6265 20.7701 35.7733 19.6054 33.7268 19.2029Z" fill="white"/>
-            <path d="M15.8513 16.6044L17.1594 15.2963L13.3638 11.5002C11.4649 9.60166 8.5806 7.61413 5.59135 10.6034C3.39937 12.7954 3.88623 14.9287 5.04889 16.6606C5.40301 16.6345 15.8513 16.6044 15.8513 16.6044Z" fill="white"/>
-            <path d="M21.8697 31.1352L20.5582 32.4467L24.4244 36.3126C26.3231 38.2115 29.3571 40.0493 32.1969 37.2095C34.316 35.0903 33.8297 32.8644 32.6582 31.0814C32.2811 31.1086 21.8697 31.1352 21.8697 31.1352Z" fill="white"/>
-          </svg>
-          Malt
-        </a>
-        <a class="clink" href="mailto:vincent.clair@inneair.com">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 4h20v16H2V4zm10 7L3.2 5.4 2 6.2 12 13l10-6.8-1.2-.8L12 11z"/></svg>
-          Email
-        </a>
-      </div>
-    </div>
-    <div class="contact">
-      <div class="head">
-        <div class="avatar"><img src="img/janice-fixari.jpeg" alt="Janice Fixari">JF</div>
-        <div class="who">
-          <div class="name">Janice Fixari</div>
-          <div class="role">Resp. Administrative &amp; Financière</div>
-        </div>
-      </div>
-      <div class="links">
-        <a class="clink" href="https://www.linkedin.com/in/janice-fixari-clair-487785ba/" target="_blank" rel="noopener">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.07 2.07 0 1 1 0-4.14 2.07 2.07 0 0 1 0 4.14zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>
-          LinkedIn
-        </a>
-        <a class="clink" href="mailto:janice.fixari@phosphoria.fr">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 4h20v16H2V4zm10 7L3.2 5.4 2 6.2 12 13l10-6.8-1.2-.8L12 11z"/></svg>
-          Email
-        </a>
-      </div>
-    </div>
-    </div>
   </div>
 </section>
 
