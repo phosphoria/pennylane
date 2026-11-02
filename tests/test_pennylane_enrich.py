@@ -79,13 +79,13 @@ class PureFunctionTests(unittest.TestCase):
 
     def test_derive_output_base_fournisseurs(self):
         self.assertEqual(
-            pe.derive_output_base("Lecabou/PENNYLANE_LECABOU_Export_des_fournisseurs.csv"),
-            os.path.join("Lecabou", "LECABOU_fournisseurs"))
+            pe.derive_output_base("ClientA/PENNYLANE_CLIENTA_Export_des_fournisseurs.csv"),
+            os.path.join("ClientA", "CLIENTA_fournisseurs"))
 
     def test_derive_output_base_clients(self):
         self.assertEqual(
-            pe.derive_output_base("Geode/PENNYLANE_GEODE_Export_des_clients.csv"),
-            os.path.join("Geode", "GEODE_clients"))
+            pe.derive_output_base("ClientB/PENNYLANE_CLIENTB_Export_des_clients.csv"),
+            os.path.join("ClientB", "CLIENTB_clients"))
 
     def test_is_generic_name(self):
         gs = set(pe.DEFAULT_GENERIC_NAMES)

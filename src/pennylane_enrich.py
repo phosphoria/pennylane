@@ -61,7 +61,7 @@ Usage:
     python3 pennylane_enrich.py INPUT.csv [OUTPUT.csv] [--generic NOM1,NOM2,...]
 
     INPUT.csv  : export Pennylane original. Peut etre dans un sous-dossier
-                 (ex: "Lecabou/PENNYLANE_LECABOU_Export_des_fournisseurs.csv").
+                 (ex: "ClientA/PENNYLANE_CLIENTA_Export_des_fournisseurs.csv").
 
     OUTPUT.csv : optionnel. Base de nom pour les fichiers de sortie
                  (OUTPUT.traites.csv, OUTPUT.a_traiter.csv, OUTPUT.report.txt).
@@ -69,8 +69,8 @@ Usage:
                  dans le MEME dossier que l'entree : le prefixe "PENNYLANE_"
                  et le suffixe "_Export_des_fournisseurs"/"_export" sont
                  retires s'ils sont presents.
-                 Ex: "Lecabou/PENNYLANE_LECABOU_Export_des_fournisseurs.csv"
-                     -> "Lecabou/LECABOU_fournisseurs.traites.csv" etc.
+                 Ex: "ClientA/PENNYLANE_CLIENTA_Export_des_fournisseurs.csv"
+                     -> "ClientA/CLIENTA_fournisseurs.traites.csv" etc.
 
     --generic  : liste optionnelle (separee par des virgules) de noms a NE PAS
                  chercher car ce sont des libelles generiques (ex: "Hotels,Taxi").
