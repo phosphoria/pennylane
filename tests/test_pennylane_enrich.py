@@ -159,6 +159,32 @@ class NetworkFunctionTests(unittest.TestCase):
         self.patch_http({"results": []})
         self.assertIsNone(pe.lookup_siren("000000000"))
 
+    def test_lookup_siren_only_other_siren(self):
+        # Recherche plein texte : la reponse ne contient qu'une AUTRE entreprise.
+        # Son SIRET ne doit pas etre retenu : SIREN non confirme, champs vides.
+        self.patch_http({"results": [{
+            "siren": "111111111", "nom_complet": "AUTRE SA",
+            "siege": {"siret": "11111111100011", "code_postal": "69001",
+                      "libelle_commune": "LYON", "adresse": "1 RUE Y 69001 LYON"},
+        }]})
+        info = pe.lookup_siren("303265045")
+        self.assertTrue(info["siren_non_confirme"])
+        self.assertEqual(info["siren"], "303265045")
+        self.assertEqual(info["siret"], "")
+        self.assertEqual(info["adresse"], "")
+        self.assertEqual(info["code_postal"], "")
+        self.assertEqual(info["ville"], "")
+
+    def test_lookup_siren_exact_match_not_first(self):
+        # Le resultat retenu est celui qui porte le SIREN, pas le premier.
+        self.patch_http({"results": [
+            {"siren": "111111111", "siege": {"siret": "11111111100011"}},
+            {"siren": "303265045", "siege": {"siret": "30326504500017"}},
+        ]})
+        info = pe.lookup_siren("303265045")
+        self.assertEqual(info["siret"], "30326504500017")
+        self.assertFalse(info.get("siren_non_confirme"))
+
     def test_lookup_by_name_unique_match(self):
         self.patch_http({"results": [{
             "siren": "303265045", "nom_complet": "ACME", "etat_administratif": "A",
@@ -180,6 +206,17 @@ class NetworkFunctionTests(unittest.TestCase):
         info, candidates = pe.lookup_by_name("MARTIN")
         self.assertIsNone(info)                 # ambigu -> pas de completion auto
         self.assertEqual(len(candidates), 2)
+
+    def test_lookup_by_name_only_other_company(self):
+        # Pas de repli sur le premier resultat : une reponse qui ne contient
+        # qu'une autre entreprise (nom different) ne complete rien.
+        self.patch_http({"results": [{
+            "siren": "111111111", "nom_complet": "ACME DISTRIBUTION", "etat_administratif": "A",
+            "siege": {"siret": "11111111100011", "libelle_commune": "LYON"},
+        }]})
+        info, candidates = pe.lookup_by_name("ACME")
+        self.assertIsNone(info)
+        self.assertEqual(candidates, [("ACME DISTRIBUTION", "111111111", "LYON")])
 
     def test_lookup_vies_parses_address(self):
         self.patch_http({"isValid": True, "name": "ACME LTD",
@@ -303,6 +340,26 @@ class MainPipelineTests(unittest.TestCase):
                       out["report"])
         self.assertIn("MARTIN SAS - SIREN 222222222, LYON - "
                       "https://annuaire-entreprises.data.gouv.fr/entreprise/222222222",
+                      out["report"])
+
+    def test_siren_not_confirmed_left_untouched_and_reported(self):
+        # Bout en bout : l'API ne renvoie qu'une autre entreprise. Rien n'est
+        # ecrit, la ligne part en a_traiter et le rapport la signale a verifier.
+        self.patch("_http_get_json", lambda url: {"results": [{
+            "siren": "111111111", "nom_complet": "AUTRE SA",
+            "siege": {"siret": "11111111100011", "code_postal": "69001",
+                      "libelle_commune": "LYON", "adresse": "1 RUE Y 69001 LYON"},
+        }]})
+        csv = HEADER_SIRET + "\nid;e;ACME FR;;FR40303265045;;;;FR;false\n"
+        out = self.run_main(csv, "PENNYLANE_T_Export_des_fournisseurs.csv")
+        written = out["traites"] + out["a_traiter"]
+        self.assertNotIn("11111111100011", written)
+        self.assertNotIn("LYON", written)
+        self.assertEqual(out["traites"].strip().count("\n"), 0)  # entete seule
+        self.assertIn("ACME FR", out["a_traiter"])
+        self.assertIn("aucun resultat ne porte exactement ce SIREN) : 1", out["report"])
+        self.assertIn("ACME FR (SIREN 303265045) : "
+                      "https://annuaire-entreprises.data.gouv.fr/entreprise/303265045",
                       out["report"])
 
 

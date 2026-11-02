@@ -84,7 +84,7 @@ function renderResults(result, ctx, before) {
   el("progwrap").classList.add("hidden");
 
   const completed = stats.already + stats.completed_fr + stats.completed_name;
-  const toVerify = stats.diffusion + stats.not_found + stats.ambiguous + stats.generic + stats.error;
+  const toVerify = stats.diffusion + stats.not_found + stats.unconfirmed + stats.ambiguous + stats.generic + stats.error;
   /** @type {[string, number, string][]} */
   const cards = [
     ["g", completed, "Complétées (prêtes à réimporter)"],
@@ -134,6 +134,7 @@ const DETAIL_GROUPS = [
   { title: "Libellé générique ignoré", emoji: "🏷️", kinds: ["generic"] },
   { title: "Étranger", emoji: "🌍", kinds: ["foreign"] },
   { title: "Sans TVA, à vérifier", emoji: "🔎", kinds: ["ambiguous"] },
+  { title: "SIREN non confirmé, à vérifier", emoji: "❗", kinds: ["unconfirmed"] },
   { title: "Introuvable / protégé", emoji: "❓", kinds: ["not_found", "diffusion"] },
   { title: "Erreur réseau", emoji: "⚠️", kinds: ["error"] }
 ];
@@ -173,6 +174,7 @@ function itemLine(o, nom, extra) {
     case "foreign": text = `${b} <span class="mut">(${escapeHtml(o.cc) || "?"} — ${o.inEu ? "UE, adresse via la version à télécharger" : "hors UE"})</span>`; break;
     case "diffusion": text = `${b} <span class="mut">(SIREN ${escapeHtml(o.siren)} — diffusion partielle)</span>`; break;
     case "not_found": text = `${b} <span class="mut">(SIREN ${escapeHtml(o.siren)} — introuvable)</span>`; break;
+    case "unconfirmed": text = `${b} <span class="mut">(SIREN ${escapeHtml(o.siren)} — aucun résultat ne porte ce SIREN, ligne non complétée)</span> ${verifyLink(o.siren, "vérifier")}`; break;
     case "error": text = `${b} <span class="mut">(${escapeHtml(o.message)})</span>`; break;
     case "ambiguous": {
       const lines = o.candidates.filter(c => c[0]).map(c =>

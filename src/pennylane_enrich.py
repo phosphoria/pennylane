@@ -21,7 +21,10 @@ Logique :
      de TVA.
   2. Si TVA francaise (FR + 2 chiffres de cle + 9 chiffres de SIREN) : le SIREN est
      extrait directement (fiable, pas de recherche par nom) puis interroge sur
-     l'API gouv pour SIRET + adresse + code postal + ville.
+     l'API gouv pour SIRET + adresse + code postal + ville. La recherche de
+     l'API etant en plein texte, seul un resultat portant EXACTEMENT ce SIREN
+     est retenu ; si aucun ne le porte, la ligne n'est pas completee et le
+     rapport la signale a verifier.
   3. Si TVA d'un autre pays europeen : interrogation de VIES. Si le pays transmet
      le detail, l'adresse est recuperee (eclatee en best-effort sur code
      postal / ville quand c'est possible, sinon mise telle quelle dans Adresse).
@@ -44,8 +47,9 @@ Sortie : DEUX fichiers CSV au lieu d'un seul OUTPUT.csv (passe en argument 2) :
                              une donnee d'adresse a ete trouvee, pretes a etre
                              reimportees dans Pennylane.
   - OUTPUT.a_traiter.csv  -> tout le reste (libelles generiques, lignes sans TVA,
-                             SIREN introuvable/inactif, fournisseur en diffusion
-                             partielle, pays VIES sans detail) : a traiter
+                             SIREN introuvable/inactif ou non confirme,
+                             fournisseur en diffusion partielle, pays VIES
+                             sans detail) : a traiter
                              manuellement ou a la prochaine iteration.
   - OUTPUT.report.txt     -> recapitulatif chiffre + listes nominatives.
 
@@ -264,7 +268,13 @@ def _http_get_json(url: str):
 
 def lookup_siren(siren: str):
     """Interroge l'API recherche-entreprises.api.gouv.fr (France) pour un SIREN donne.
-    Retourne un dict ou None si introuvable."""
+    Retourne un dict ou None si introuvable.
+
+    La recherche de l'API est en plein texte : elle peut renvoyer d'autres
+    entreprises que celle demandee. Seul un resultat portant EXACTEMENT ce SIREN
+    est retenu. Si aucun ne le porte, le dict renvoye a "siren_non_confirme" a
+    True et des champs vides : la ligne n'est pas completee (jamais avec le
+    SIRET d'une autre entreprise) et le rapport la signale a verifier."""
     url = f"{FR_API_BASE}?q={siren}"
     try:
         data = _http_get_json(url)
@@ -276,13 +286,17 @@ def lookup_siren(siren: str):
     if not results:
         return None
 
-    match = None
-    for r in results:
-        if r.get("siren") == siren:
-            match = r
-            break
+    match = next((r for r in results if r.get("siren") == siren), None)
     if match is None:
-        match = results[0]
+        return {
+            "siren": siren,
+            "siret": "",
+            "adresse": "",
+            "code_postal": "",
+            "ville": "",
+            "nom_officiel": "",
+            "siren_non_confirme": True,
+        }
 
     def clean_val(v):
         """Les entreprises (EI, particuliers) ayant active le droit a la diffusion
@@ -552,6 +566,7 @@ def main():
         "diffusion_partielle_fr": 0,
         "vies_sans_detail": 0,
         "not_found_fr": 0,
+        "siren_non_confirme": 0,
         "generic_skipped": 0,
         "unchanged_no_vat": 0,
         "no_vat_no_match": 0,
@@ -559,6 +574,7 @@ def main():
     }
     diffusion_partielle_list = []
     not_found_list = []
+    siren_non_confirme_list = []
     vies_sans_detail_list = []
     unchanged_list = []
     no_vat_candidates_list = []
@@ -653,7 +669,13 @@ def main():
 
             row[col_pays] = "FR"
 
-            if info and info["siret"]:
+            if info and info.get("siren_non_confirme"):
+                # L'API a renvoye des entreprises, mais aucune ne porte ce SIREN :
+                # on ne complete rien et on signale la ligne a verifier.
+                stats["siren_non_confirme"] += 1
+                siren_non_confirme_list.append(f"{nom} (SIREN {siren}) : {ANNUAIRE_BASE}{siren}")
+                rows_a_traiter.append(row)
+            elif info and info["siret"]:
                 if not row.get(col_id):
                     row[col_id] = id_value_for(info)
                 if not row.get(col_adresse):
@@ -739,6 +761,7 @@ def main():
         f.write(f"Fournisseurs completes via recherche par nom (sans TVA au depart) : {stats['completed_by_name']}\n")
         f.write(f"Fournisseurs francais en diffusion partielle (SIRET protege, EI/particulier) : {stats['diffusion_partielle_fr']}\n")
         f.write(f"Fournisseurs francais introuvables (SIREN inactif/inconnu) : {stats['not_found_fr']}\n")
+        f.write(f"Fournisseurs francais a verifier (aucun resultat ne porte exactement ce SIREN) : {stats['siren_non_confirme']}\n")
         f.write(f"Fournisseurs etrangers sans detail disponible (VIES ne transmet pas, ou hors UE) : {stats['vies_sans_detail']}\n")
         f.write(f"Libelles generiques ignores : {stats['generic_skipped']}\n")
         f.write(f"Lignes sans TVA et sans nom exploitable : {stats['unchanged_no_vat']}\n")
@@ -759,6 +782,13 @@ def main():
         if not_found_list:
             f.write("Fournisseurs francais introuvables :\n")
             for x in not_found_list:
+                f.write(f"  - {x}\n")
+            f.write("\n")
+        if siren_non_confirme_list:
+            f.write("Fournisseurs francais A VERIFIER - la recherche n'a renvoye aucune\n")
+            f.write("entreprise portant exactement ce SIREN (numero de TVA errone ?).\n")
+            f.write("Ligne laissee non completee ; ouvre le lien pour verifier le SIREN :\n")
+            for x in siren_non_confirme_list:
                 f.write(f"  - {x}\n")
             f.write("\n")
         if vies_sans_detail_list:
@@ -785,7 +815,7 @@ def main():
     # Reussites en vert, categories "a traiter" en orange, reste neutre.
     success_keys = {"completed_fr", "completed_vies", "completed_by_name", "deja_traites_reprise"}
     alert_keys = {"diffusion_partielle_fr", "vies_sans_detail", "not_found_fr",
-                  "no_vat_no_match", "unchanged_no_vat"}
+                  "siren_non_confirme", "no_vat_no_match", "unchanged_no_vat"}
     for k, v in stats.items():
         line = f"  {k}: {v}"
         if v and k in success_keys:

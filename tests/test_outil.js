@@ -27,6 +27,20 @@ const FR_INFO = { siren: "303265045", siret: "30326504500017", adresse: "12 RUE 
   code_postal: "75001", ville: "PARIS", nom_officiel: "ACME" };
 /** @type {M.SirenLookup} */ const SIREN_FOUND = { status: "found", info: FR_INFO };
 
+/** Réponse de l'API Sirene qui ne contient qu'une AUTRE entreprise (recherche plein texte). */
+const OTHER_COMPANY_ONLY = { results: [{ siren: "111111111", nom_complet: "AUTRE SA", etat_administratif: "A",
+  siege: { siret: "11111111100011", code_postal: "69001", libelle_commune: "LYON", adresse: "1 RUE Y 69001 LYON" } }] };
+
+/**
+ * Remplace `fetch` le temps d'un test (teste les vrais clients réseau sans requête réelle).
+ * @param {unknown} payload @param {() => Promise<void>} fn
+ */
+async function withFetch(payload, fn) {
+  const real = globalThis.fetch;
+  globalThis.fetch = async () => new Response(JSON.stringify(payload), { status: 200 });
+  try { await fn(); } finally { globalThis.fetch = real; }
+}
+
 let passed = 0, failed = 0;
 async function test(/** @type {string} */ name, /** @type {() => any} */ fn) {
   try { await fn(); console.log("ok   " + name); passed++; }
@@ -101,6 +115,40 @@ await test("SIREN introuvable -> issue not_found", async () => {
   const row = mkRow(HDR("SIRET"), { Nom: "Y", "Numéro TVA": "FR40303265045" });
   const res = await M.enrichRows([row], COLS_SIRET, { lookupSiren: async () => ({ status: "not_found" }), sleep: noop });
   assert.equal(res.stats.not_found, 1);
+});
+await test("lookupSiren : réponse avec un autre SIREN seulement -> unconfirmed (pas de repli)", async () => {
+  await withFetch(OTHER_COMPANY_ONLY, async () => {
+    assert.deepEqual(await M.lookupSiren("303265045"), { status: "unconfirmed" });
+  });
+});
+await test("lookupSiren : retient le résultat qui porte le SIREN, pas le premier", async () => {
+  await withFetch({ results: [{ siren: "111111111", siege: { siret: "11111111100011" } },
+    { siren: "303265045", siege: { siret: "30326504500017" } }] }, async () => {
+    const res = await M.lookupSiren("303265045");
+    assert.equal(res.status === "found" && res.info.siret, "30326504500017");
+  });
+});
+await test("SIREN non confirmé -> issue unconfirmed, ligne non complétée, à traiter", async () => {
+  const row = mkRow(HDR("SIRET"), { Nom: "ACME FR", "Numéro TVA": "FR40303265045", Pays: "FR" });
+  await withFetch(OTHER_COMPANY_ONLY, async () => {
+    const res = await M.enrichRows([row], COLS_SIRET, { sleep: noop });
+    assert.deepEqual(res.outcomes[0], { kind: "unconfirmed", siren: "303265045" });
+    assert.equal(res.stats.unconfirmed, 1);
+    assert.equal(res.done.length, 0);
+    assert.equal(res.todo.length, 1);
+  });
+  assert.equal(row["SIRET"], "");
+  assert.equal(row["Adresse"], "");
+  assert.equal(row["Code postal"], "");
+  assert.equal(row["Ville"], "");
+});
+await test("lookupByName : réponse avec une autre entreprise seulement -> ambiguous (pas de repli)", async () => {
+  await withFetch({ results: [{ siren: "111111111", nom_complet: "ACME DISTRIBUTION", etat_administratif: "A",
+    siege: { siret: "11111111100011", libelle_commune: "LYON" } }] }, async () => {
+    const res = await M.lookupByName("ACME");
+    assert.equal(res.status, "ambiguous");
+    assert.deepEqual(res.candidates, [["ACME DISTRIBUTION", "111111111", "LYON"]]);
+  });
 });
 await test("Sans TVA : match unique -> completed_name + TVA reconstruite", async () => {
   const row = mkRow(HDR("SIRET"), { Nom: "ACME" });

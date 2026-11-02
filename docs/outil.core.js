@@ -48,7 +48,7 @@ export function isGenericLabel(nom) {
 /** @type {readonly OutcomeKind[]} */
 export const OUTCOME_KINDS = [
   "already", "completed_fr", "completed_name",
-  "generic", "diffusion", "not_found", "ambiguous", "foreign", "error"
+  "generic", "diffusion", "not_found", "unconfirmed", "ambiguous", "foreign", "error"
 ];
 
 /** @type {ReadonlySet<string>} */
@@ -83,7 +83,7 @@ export const COMPLETED_KINDS = new Set(["already", "completed_fr", "completed_na
 /** @typedef {[nom:string, siren:string, ville:string]} Candidate */
 
 /** @typedef {{ ok: true, columns: Columns } | { ok: false, missing: string[] }} ColumnsResult */
-/** @typedef {{ status: "found", info: CompanyInfo } | { status: "protected" } | { status: "not_found" }} SirenLookup */
+/** @typedef {{ status: "found", info: CompanyInfo } | { status: "protected" } | { status: "not_found" } | { status: "unconfirmed" }} SirenLookup */
 /** @typedef {{ status: "match", info: CompanyInfo, candidates: Candidate[] } | { status: "ambiguous", candidates: Candidate[] }} NameLookup */
 
 /**
@@ -105,6 +105,7 @@ export const COMPLETED_KINDS = new Set(["already", "completed_fr", "completed_na
  *   | { kind: "completed_name", siren: string, nomOfficiel: string }
  *   | { kind: "diffusion", siren: string }
  *   | { kind: "not_found", siren: string }
+ *   | { kind: "unconfirmed", siren: string }
  *   | { kind: "ambiguous", candidates: Candidate[] }
  *   | { kind: "foreign", cc: string, inEu: boolean }
  *   | { kind: "error", message: string }
@@ -279,12 +280,20 @@ async function fetchJson(url) {
   return r.json();
 }
 
-/** @param {string} siren @returns {Promise<SirenLookup>} */
+/**
+ * Recherche plein texte : l'API peut renvoyer d'autres entreprises que celle
+ * demandée. Seul un résultat portant EXACTEMENT ce SIREN est retenu ; sinon
+ * « unconfirmed » (la ligne n'est jamais complétée avec le SIRET d'une autre
+ * entreprise).
+ * @param {string} siren @returns {Promise<SirenLookup>}
+ */
 export async function lookupSiren(siren) {
   const data = /** @type {ApiSearchResponse} */ (await fetchJson(`${API_URL}?q=${siren}`));
   const results = data.results || [];
   if (!results.length) return { status: "not_found" };
-  const info = infoFromApiMatch(results.find(x => x.siren === siren) || results[0]);
+  const match = results.find(x => x.siren === siren);
+  if (!match) return { status: "unconfirmed" };
+  const info = infoFromApiMatch(match);
   return info.siret ? { status: "found", info } : { status: "protected" };
 }
 
@@ -348,6 +357,7 @@ async function resolveFrench(row, cols, siren, deps) {
     case "found": applyInfo(row, cols, res.info); return { kind: "completed_fr" };
     case "protected": return { kind: "diffusion", siren };
     case "not_found": return { kind: "not_found", siren };
+    case "unconfirmed": return { kind: "unconfirmed", siren };
   }
 }
 
