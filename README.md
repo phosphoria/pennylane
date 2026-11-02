@@ -237,8 +237,7 @@ le lien de chaque candidat, pour trancher à la main en quelques secondes.
 │   └── test_outil.js             # tests JS (bibliothèque de l'outil web)
 └── src/
     ├── pennylane_enrich.py                  # le script principal (multiplateforme)
-    ├── Traiter un export Pennylane.command  # lanceur double-cliquable (macOS)
-    └── Traiter un export Pennylane.bat      # lanceur double-cliquable (Windows)
+    └── Traiter un export Pennylane.command  # lanceur double-cliquable (macOS)
 ```
 
 ### Lancer les tests
@@ -263,7 +262,7 @@ le côté **JavaScript** couvre la bibliothèque de l'outil web
 (`docs/outil.core.js` : parsing CSV, `enrichRows` avec appels réseau simulés,
 issues typées, déduplication…). Le DOM (`docs/outil.ui.js`) reste
 volontairement mince et non testé unitairement. Les deux suites tournent en CI
-(`.github/workflows/tests.yml`, plus un job Windows pour Python).
+(`.github/workflows/tests.yml`).
 
 Autres raccourcis (`make help` pour la liste) : `make zip` construit le zip de
 distribution, `make run CSV=chemin.csv` traite un export, `make clean` supprime
